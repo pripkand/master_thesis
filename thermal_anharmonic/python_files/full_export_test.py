@@ -4,7 +4,7 @@ import json
 
 from header_file import build_matrix
 
-with open("/home/pripoll/Documents/Uni_Classes/Masters_thesis/thermal_anharmonic/wolfram_output/output_for_l=4_m=3_k=3.json","r") as f:
+with open("//home/pripoll/Documents/Uni_Classes/Masters_thesis/anharmonic_thermal/thermal_anharmonic/wolfram_output/output_for_l=4_m=3_k=3.json","r") as f:
     data=json.load(f)
 
     parameters=data["parameters"]
@@ -32,7 +32,7 @@ objective=cp.Minimize(3/2*variables["P2"]) # Due to the Schwinger-Dyson Equation
 constraints=[M >> 0]
 z_psd=[ cp.bmat([[z_matrices[i],z_matrices[i+1]],[z_matrices[i+1],A]])>>0 for i in range(k-1)]
 t_psd=[ cp.bmat() for i in range(m)]
-#comment
+
 problem=cp.Problem(objective, constraints)
 problem.solve()
 
