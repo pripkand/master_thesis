@@ -1,47 +1,37 @@
 import numpy as np
-import json
 import cvxpy as cp
 
 
-domains={"X" : False, "X2" : False, "P2" : False, "P3" : False, "X4" : False,
- "X2P2" : False, "P4" : False, "XP2" : True, "XP3" : True}
+P2,X4,P3,P4,X3=cp.Variable(name="P2"),cp.Variable(name="X4"),cp.Variable(name="P3"),cp.Variable(name="P4"),cp.Variable(name="X3")
+XP2,X2P,X2P2,X3P,XP3=cp.Variable(name="XP2",complex=True),cp.Variable(name="X2P",complex=True),cp.Variable(name="X2P2",complex=True),cp.Variable(name="X3P",complex=True),cp.Variable(name="XP3",complex=True)
 
-with open("wolfram_output/output_for_l=4_m=3.json","r") as f:
-    data=json.load(f)
+M=cp.bmat([
+    [1,0,0,P2,P2,1j/2,-1j/2],
+    [0,P2,1j/2,X3,XP2,X2P,X2P],
+    [0,-1j/2,P2,X2P,P3,XP2,XP2],
+    [P2,X3,X2P,X4,X2P2,X3P,-1J*P2+X3P],
+    [P2,XP2,P3,0,P4,-1J*2*P2+XP3,-1J*3*P2+XP3],
+    [-1J/2,X2P,XP2,-1j*3*P2+X3P,-1J*P2+XP3,1+X2P2,1/2+X2P2],
+    [1J/2,X2P,XP2,-1j*2*P2+X3P,XP3,1/2+X2P2,1*X2P2]
+])
+z_matrices = np.array([cp.Variable((1, 1), name="Z_" + str(i), hermitian=True) for i in range(3 + 1)])
+t_matrices = np.array([cp.Variable((1, 1), name="T_" + str(i + 1), hermitian=True) for i in range(3)])
 
-    psd_vars={}
-    psd_coef_mats={}
-    for key,value in data.items():
-        psd_coef_mats[key]=np.array(value[0])+1j*np.array(value[1])
-        if key!="constant":
-            psd_vars[key]=cp.Variable(name=key,complex=domains[key])
+beta=cp.Parameter(nonneg=True)
 
-M = psd_coef_mats["constant"] + sum(np.array([psd_vars[key] * psd_coef_mats[key] for key in psd_vars.keys()]))
+constant=cp.Constant(np.array([[1]]))
 
-objective = cp.Minimize(psd_vars["X4"] + psd_vars["P2"])
-constraints = [M >> 0]
-print("passed")
-prob = cp.Problem(objective, constraints)
-prob.solve()
+constraints=[M>>0,cp.bmat([[constant,z_matrices[1]],[z_matrices[1],constant]])>>0,cp.bmat([[z_matrices[1],z_matrices[2]],[z_matrices[2],constant]])>>0,cp.bmat([[z_matrices[2],z_matrices[3]],[z_matrices[3],constant]])>>0,
+            cp.bmat([[z_matrices[-1]-constant-t_matrices[0],-np.sqrt(0)*t_matrices[0]],[cp.Constant([[0]]),constant]])>>0,cp.bmat([[z_matrices[-1]-constant-t_matrices[1],-np.sqrt(0.355051)*t_matrices[1]],[-np.sqrt(0.355051)*t_matrices[1],constant-0.355051*t_matrices[1]]])>>0,
+            cp.bmat([[z_matrices[-1] - constant - t_matrices[2], -np.sqrt(0.844949) * t_matrices[2]],
+                      [-np.sqrt(0.844949) * t_matrices[2], constant - 0.844949* t_matrices[2]]]) >> 0,
+            1/9*t_matrices[0]+0.512486*t_matrices[1]+0.376403*t_matrices[2]==0
+             ]
 
-print("Status:", prob.status)
-print("Optimal value:", prob.value)
-print("Optimal variables:")
-for key, variable in psd_vars.items():
-    print(key + " =", variable.value)
-    """
-    Status: optimal
-Optimal value: 9.92730264065434
-Optimal variables:
-X = 1.3072214471009065e-05
-X2 = 0.072274123977404
-P2 = 6.26343237383771
-XP2 = (0.005244868949792456+0j)
-P3 = 4.9072670298670536e-06
-X4 = 3.6638702668166285
-X2P2 = 303.6296445113358
-P4 = 24998.452761812303
-XP3 = (-8.492732824381106e-07+0j)
+objective=cp.Minimize(2*P2)
+problem=cp.Problem(objective, constraints)
 
-Process finished with exit code 0
-    """
+problem.solve(solver='SDPA',verbose=True)
+
+print(problem.status)
+print(problem.value)
