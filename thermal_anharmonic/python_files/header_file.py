@@ -63,7 +63,7 @@ def run_sdp(beta_range:np.ndarray,input_file:str,output_folder:str)->None:
     variable_values = []
     problem_status = []
     for i,beta in enumerate(beta_range):
-            if i%5==0:
+            if i%2==0:
                 print(f"beta={beta} L={L} m={m} k={k} n={n}")
                 start_time=time.time()
             objective = cp.Minimize(2 * variables["P2"])  # Due to the Schwinger-Dyson Equations, X2=P2
@@ -73,7 +73,7 @@ def run_sdp(beta_range:np.ndarray,input_file:str,output_folder:str)->None:
 
             problem = cp.Problem(objective, constraints)
             problem.solve()
-            if i%5==0:
+            if i%2==0:
                 end_time=time.time()
                 elapsed=end_time-start_time
                 print(f"Status:{problem.status} Energy:{problem.value} Elapsed Time:{elapsed:.3f} seconds")
