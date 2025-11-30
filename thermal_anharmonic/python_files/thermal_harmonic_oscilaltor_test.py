@@ -7,7 +7,7 @@ from cvxpy import length
 
 from header_file import build_matrix,run_sdp
 
-in_file = "/home/pripoll/Documents/Uni_Classes/Masters_thesis/anharmonic_thermal/thermal_anharmonic/wolfram_output/anharmonic_output_for_l=8_m=3_k=3.json"
+in_file = "/home/pripoll/Documents/Uni_Classes/Masters_thesis/anharmonic_thermal/thermal_anharmonic/wolfram_output/Harmonic_output_for_l=4_m=3_k=3.json"
 out_folder = "python_outputs"
 
 temperature_range=np.arange(0.02,0.6,0.02)
