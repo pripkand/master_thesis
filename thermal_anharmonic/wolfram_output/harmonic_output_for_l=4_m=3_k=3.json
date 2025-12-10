@@ -1,6 +1,7 @@
 {
 	"parameters":{
-		"L":8,
+		"type":"Harmonic",
+		"L":4,
 		"quadrature":[
 			[
 				0,
