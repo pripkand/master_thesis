@@ -14,18 +14,19 @@ def build_matrix(coefficients,variables):
     :return: A matrix that is a function of cvxpy variables
     """
     matrix_coefficients = {key: np.array(value[0]) + 1j * np.array(value[1]) for key, value in coefficients.items()}
-    return  matrix_coefficients["constant"] + sum(np.array(
-        [matrix_coefficients[key] * variables[key] for key in matrix_coefficients.keys() & variables.keys()]))
+    return  matrix_coefficients["constant"] + cp.sum(
+        [matrix_coefficients[key] * variables[key] for key in matrix_coefficients.keys() & variables.keys()])
 
-def run_sdp(beta_range:np.ndarray,input_file:str,output_folder:str)->None:
+def run_sdp(objective:cp.Variable,temp_range:np.ndarray,input_file:str,output_folder:str)->None:
     """
     Runs the thermal and saves it to a file
-    :param beta_range: The range over which the SDP will run.
+    :param: objective: The objective function to minimize.
+    :param temp_range: The range over which the SDP will run.
     :param input_file: The file to fetch data from.
     :param output_folder: The folder to output the h5py file. The output file has the convention <system>_L=<L>_n=<n>_k=<k>
     :return: None
     """
-    with open(input_file,"r") as f:
+    with open(input_file, "r") as f:
         data = json.load(f)
 
         parameters = data["parameters"]
@@ -47,7 +48,7 @@ def run_sdp(beta_range:np.ndarray,input_file:str,output_folder:str)->None:
     A = build_matrix(data["A"], variables)
     B = build_matrix(data["B"], variables)
     C = build_matrix(data["C"], variables)
-
+    # print("C",C,"B",B,"A",A)
     # Create the inverse temperature parameter
     beta = cp.Parameter(nonneg=True)
 
@@ -55,30 +56,59 @@ def run_sdp(beta_range:np.ndarray,input_file:str,output_folder:str)->None:
     z_matrices = np.array([cp.Variable((n, n), name="Z_" + str(i), hermitian=True) for i in range(k + 1)])
     t_matrices = np.array([cp.Variable((n, n), name="T_" + str(i + 1), hermitian=True) for i in range(m)])
 
-    # Sets up the constraints that impose the KMS condition
-    z_psd = [cp.bmat([[z_matrices[i], z_matrices[i + 1]], [z_matrices[i + 1], A]]) >> 0 if i != 0 else cp.bmat(
-        [[B, z_matrices[1]], [z_matrices[1], A]]) >> 0 for i in range(k)]
-    t_psd = [cp.bmat([[z_matrices[-1] - A - t_matrices[i], -np.sqrt(quadrature[i][0]) * t_matrices[i]],
-                      [-np.sqrt(quadrature[i][0]) * t_matrices[i], A - np.sqrt(quadrature[i][0]) * t_matrices[i]]]) >> 0
-             for i in range(m)]
+    constraints = [M >> 0, z_matrices[0] == B]
 
-    t_eq = [sum([quadrature[i][1] * t_matrices[i] for i in range(m)]) == -2 ** (-k) * beta * C]
-    constraints = [M >> 0] + z_psd + t_psd + t_eq
-    objective = cp.Minimize(2 * variables["P2"]) if system == "Harmonic" else cp.Minimize(
-        3 / 2 * variables["P2"])  # Due to the Schwinger-Dyson Equations, X2=P2 or X4=P2/2
-    problem = cp.Problem(objective, constraints)
+    # Append Z block constraints
+    for i in range(k):
+        expr = cp.bmat([
+            [z_matrices[i], z_matrices[i + 1]],
+            [z_matrices[i + 1], A]
+        ])
+        constraints.append(expr >> 0)
+
+    # Append T block constraints
+    for j in range(m):
+        t_j = quadrature[j][0]
+        expr = cp.bmat([
+            [z_matrices[-1] - A - t_matrices[j], -cp.Constant(np.sqrt(t_j)) * t_matrices[j]],
+            [-cp.Constant(np.sqrt(t_j)) * t_matrices[j], A - cp.Constant(t_j) * t_matrices[j]]
+        ])
+        constraints.append(expr >> 0)
+
+    weights = [cp.Constant(quadrature[i][1]) for i in range(m)]
+    t_eq = sum(weights[j] * t_matrices[j] for j in range(m)) + cp.Constant(2 ** (-k)) * beta * C
+
+    constraints.append(t_eq == 0)
+
+    objective_func = cp.Minimize(objective)
+    problem = cp.Problem(objective_func, constraints)
+    
+    status = []
+    energy = []
+    for t in temp_range:
+        beta.value = 1 / t
+
+        status.append(problem.status)
+        energy.append(problem.value)
 
     e_values = []
     variable_values = []
     problem_status = []
-    for i,inv_temp in enumerate(beta_range):
+    for i,inv_temp in enumerate(temp_range):
             # Progress Print
             if i%5==0:
                 start_time=time.time()
                 print(f"beta={inv_temp} L={L} m={m} k={k} n={n}")
 
             beta.value = inv_temp
-            problem.solve(solver='SDPA',verbose=True,warm_start=True)
+            problem.solve(
+                warm_start=True, verbose=True, solver=cp.SCS,eps=1e-5,
+                eps_abs=1e-6,
+                eps_rel=1e-6,
+                acceleration_lookback=10,
+                normalize=True,
+                scale=1.0
+            )# Solve using SCS with some parameters adjusted. Look at https://www.cvxgrp.org/scs/api/settings.html#settings for particulars
 
             # Progress Print
             if i%5==0:
