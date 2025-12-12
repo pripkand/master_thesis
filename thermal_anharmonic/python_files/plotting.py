@@ -26,8 +26,8 @@ for L in [6,8,10]:
 
 
 def theoretical_curve(T):
-    return 1 / 2 + np.exp(1 / T) / (np.exp(1 / T) - 1)
-plt.plot(temperature_range, [theoretical_curve(beta) for beta in temperature_range],label=r"Theoretical:$\langle E \rangle=\frac{1}{2}+\frac{e^{1/T}}{e^{1/T}-1}$")
+    return - 1 / 2 + np.exp(1 / T) / (np.exp(1 / T) - 1)
+plt.plot(temperature_range, [theoretical_curve(beta) for beta in temperature_range],label=r"Theoretical:$\langle E \rangle=-\frac{1}{2}+\frac{e^{1/T}}{e^{1/T}-1}$")
 
 plt.title("Thermal Harmonic Oscillator: Bootstrap VS Theory")
 plt.xlabel("Temperature (Natural Units)")
