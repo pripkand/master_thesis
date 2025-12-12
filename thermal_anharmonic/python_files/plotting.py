@@ -11,7 +11,7 @@ import h5py
 # the corresponding scripts if the needed file is present.
 #===============================================
 
-for L in [6]:
+for L in [6,8,10]:
     with h5py.File(f"python_outputs/Harmonic_L={L}_m=3_k=3") as f:
         energy=f["energy"][()]
         status=f["status"][()]
@@ -22,12 +22,16 @@ for L in [6]:
             if i%2==0:
                 print(beta,status[i],energy[i])
 
-        plt.plot(temperature_range, energy, label=f"experimental with L={L}")
+        plt.plot(temperature_range, energy, label=f"L={L} and (m,k)=(3,3)")
 
 
 def theoretical_curve(T):
     return 1 / 2 + np.exp(1 / T) / (np.exp(1 / T) - 1)
-plt.plot(temperature_range, [theoretical_curve(beta) for beta in temperature_range],label=f"theoretical")
+plt.plot(temperature_range, [theoretical_curve(beta) for beta in temperature_range],label=r"Theoretical:$\langle E \rangle=\frac{1}{2}+\frac{e^{1/T}}{e^{1/T}-1}$")
 
+plt.title("Thermal Harmonic Oscillator: Bootstrap VS Theory")
+plt.xlabel("Temperature (Natural Units)")
+plt.ylabel(r"$\langle E \rangle$ (Natural Units)")
+plt.grid(True,alpha=0.3)
 plt.legend()
 plt.show()
