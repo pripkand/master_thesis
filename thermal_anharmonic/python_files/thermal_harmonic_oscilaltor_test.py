@@ -6,7 +6,7 @@ import json
 
 from header_file import build_matrix,run_sdp
 print(cp.installed_solvers())
-input_file = "/home/pripoll/Documents/Uni_Classes/Masters_thesis/anharmonic_thermal/thermal_anharmonic/wolfram_output/harmonic_output_for_l=10_m=3_k=3.json"
+input_file = "/home/pripoll/Documents/Uni_Classes/Masters_thesis/anharmonic_thermal/thermal_anharmonic/wolfram_output/harmonic_output_for_l=6_m=3_k=3.json"
 out_folder = "python_outputs"
 
 with open(input_file, "r") as f:
@@ -63,7 +63,7 @@ t_eq = sum(weights[j]*t_matrices[j] for j in range(m))+cp.Constant(2**(-k))*beta
 
 constraints.append(t_eq==0)
 
-objective = cp.Minimize(3/2 *variables["P2"])
+objective = cp.Minimize(2 *variables["P2"])
 problem = cp.Problem(objective, constraints)
 
 temp_range=np.arange(0.1,0.8,0.1)

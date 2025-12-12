@@ -17,10 +17,9 @@ def build_matrix(coefficients,variables):
     return  matrix_coefficients["constant"] + cp.sum(
         [matrix_coefficients[key] * variables[key] for key in matrix_coefficients.keys() & variables.keys()])
 
-def run_sdp(objective:cp.Variable,temp_range:np.ndarray,input_file:str,output_folder:str)->None:
+def run_sdp(temp_range:np.ndarray,input_file:str,output_folder:str)->None:
     """
     Runs the thermal and saves it to a file
-    :param: objective: The objective function to minimize.
     :param temp_range: The range over which the SDP will run.
     :param input_file: The file to fetch data from.
     :param output_folder: The folder to output the h5py file. The output file has the convention <system>_L=<L>_n=<n>_k=<k>
@@ -79,7 +78,7 @@ def run_sdp(objective:cp.Variable,temp_range:np.ndarray,input_file:str,output_fo
     t_eq = sum(weights[j] * t_matrices[j] for j in range(m)) + cp.Constant(2 ** (-k)) * beta * C
 
     constraints.append(t_eq == 0)
-
+    objective = 2*variables["P2"] if system.strip().lower()=="harmonic" else 3/2*variables["P2"]
     objective_func = cp.Minimize(objective)
     problem = cp.Problem(objective_func, constraints)
     
@@ -94,13 +93,13 @@ def run_sdp(objective:cp.Variable,temp_range:np.ndarray,input_file:str,output_fo
     e_values = []
     variable_values = []
     problem_status = []
-    for i,inv_temp in enumerate(temp_range):
+    for i,t in enumerate(temp_range):
             # Progress Print
             if i%5==0:
                 start_time=time.time()
-                print(f"beta={inv_temp} L={L} m={m} k={k} n={n}")
+                print(f"beta={1/t} L={L} m={m} k={k} n={n}")
 
-            beta.value = inv_temp
+            beta.value = 1/t
             problem.solve(
                 warm_start=True, verbose=True, solver=cp.SCS,eps=1e-5,
                 eps_abs=1e-6,
@@ -128,14 +127,17 @@ def run_sdp(objective:cp.Variable,temp_range:np.ndarray,input_file:str,output_fo
 
     # Export File
     with h5py.File(output_folder+"/"+system+"_L=" + str(L) + "_m=" + str(m) + "_k=" + str(k), 'a') as f:
-        data_sets = ["energy", "status", "variables"]
+        data_sets = ["energy", "status", "variables","temperatures"]
 
         for data_set in data_sets:
             if data_set in f:
                 del f[data_set]
         f.create_dataset("energy", data=e_values)
         f.create_dataset("status", data=problem_status)
+        f.create_dataset("temperatures",data=temp_range)
         # f.create_dataset("variables", data=variable_values)
 
     # Print out export file location and name
     print("File Exported as: ",output_folder+"/"+system+"_L=" + str(L) + "_m=" + str(m) + "_k=" + str(k))
+
+    return None
