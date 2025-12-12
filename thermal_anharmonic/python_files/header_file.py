@@ -17,12 +17,13 @@ def build_matrix(coefficients,variables):
     return  matrix_coefficients["constant"] + cp.sum(
         [matrix_coefficients[key] * variables[key] for key in matrix_coefficients.keys() & variables.keys()])
 
-def run_sdp(temp_range:np.ndarray,input_file:str,output_folder:str)->None:
+def run_sdp(temp_range:np.ndarray,input_file:str,output_folder:str,verbose:bool=False)->None:
     """
     Runs the thermal and saves it to a file
     :param temp_range: The range over which the SDP will run.
     :param input_file: The file to fetch data from.
     :param output_folder: The folder to output the h5py file. The output file has the convention <system>_L=<L>_n=<n>_k=<k>
+    :param verbose: Whether to set the solver as verbose.
     :return: None
     """
     with open(input_file, "r") as f:
@@ -101,7 +102,7 @@ def run_sdp(temp_range:np.ndarray,input_file:str,output_folder:str)->None:
 
             beta.value = 1/t
             problem.solve(
-                warm_start=True, verbose=True, solver=cp.SCS,eps=1e-5,
+                warm_start=True, verbose=verbose, solver=cp.SCS,eps=1e-5,
                 eps_abs=1e-6,
                 eps_rel=1e-6,
                 acceleration_lookback=10,
@@ -126,7 +127,7 @@ def run_sdp(temp_range:np.ndarray,input_file:str,output_folder:str)->None:
             variable_values.append(variables_dictionary)
 
     # Export File
-    with h5py.File(output_folder+"/"+system+"_L=" + str(L) + "_m=" + str(m) + "_k=" + str(k), 'a') as f:
+    with h5py.File(output_folder+"/"+system+"_L=" + str(L) + "_m=" + str(m) + "_k=" + str(k) + ".hdf5", 'a') as f:
         data_sets = ["energy", "status", "variables","temperatures"]
 
         for data_set in data_sets:
@@ -135,7 +136,7 @@ def run_sdp(temp_range:np.ndarray,input_file:str,output_folder:str)->None:
         f.create_dataset("energy", data=e_values)
         f.create_dataset("status", data=problem_status)
         f.create_dataset("temperatures",data=temp_range)
-        # f.create_dataset("variables", data=variable_values)
+        # f.create_dataset("variables", data=variable_values) # This was throwing errors, so I desabled it for now.
 
     # Print out export file location and name
     print("File Exported as: ",output_folder+"/"+system+"_L=" + str(L) + "_m=" + str(m) + "_k=" + str(k))
