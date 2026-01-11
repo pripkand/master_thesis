@@ -303,6 +303,8 @@ def generate_hermitian(dimension: int):
 # generate_hermitian and I got a class for storing such objects whcih includes the M matrix
 
 # Next:
-# -It would be potentially useful to have the PsdHermitian objects in dictionaries so that i can keep track of the variables
+# -It would be potentially useful to have the PsdHermitian objects in dictionaries so that I can keep track of the variables
+#   Remember that each complex variables is 2 variables in a trenchcoat
 # -Need to make a function that takes the coefficients from mathematica and makes a list with PsdHermitian objects
 # -Make a function that turns the matrices into SDPA format.
+# -CAREFUL: need to handle properly cases where we have c*x where both c and x are complex this needs to be c
