@@ -1,7 +1,8 @@
 import cvxpy as cp
 import numpy as np
 
-"""
+
+
 # === Variables exactly as listed ===
 X    = cp.Variable()                 # real
 X2   = cp.Variable()                 # real
