@@ -246,3 +246,7 @@ def generate_hermitian(dimension: int,name: str):
     sym_basis = symmetric_basis(dimension)
     antisym_basis = antisymmetric_basis(dimension)
     return [PsdHermitian(a,name+f"_{i}") for  i,a in enumerate(zip(sym_basis, antisym_basis))]
+
+# I believe the class is mostly done. The only thing left to do is: Add constructors for specific class initialisations
+# (T and Z matrices) and add a method that conjoins 4 class instances into one (basically np.block but for the class.
+# Although I think block works fine for this). Next is implementing the reading into SDPA prob with a problem class.
