@@ -11,16 +11,15 @@ class PsdHermitian(MutableMapping):
         self._name = name
         self._original_chart = domain_chart
         self._matrix, self._variables = PsdHermitian.real_variables(variables_dictionary, domain_chart)
-        self._size = next(iter(self._matrix.values())).shape[0]
         self._nblock = nblock
-        self._blockstruct = [self._size] if blockstruct is None else blockstruct
+        self._blockstruct = [self.size] if blockstruct is None else blockstruct
         self._mdim = len(self._variables)-1 # Number of variables is the len(variable) minus the "constant" "variable"
 
 
 
 
     def __str__(self):
-        return f"Hermitian Matrix {self._name} with dimension: {self._size} blocks {self._nblock} block structure {self._blockstruct} and number of variables {self._mdim}"
+        return f"Hermitian Matrix {self._name} with dimension: {self.size} blocks {self._nblock} block structure {self._blockstruct} and number of variables {self._mdim}"
 
     def __repr__(self):
         return self.__str__()
@@ -28,7 +27,7 @@ class PsdHermitian(MutableMapping):
     def __add__(self, other):
         if not isinstance(other, PsdHermitian):
             return NotImplemented
-        elif self._size != other._size:
+        elif self.size != other.size:
             raise ValueError("Addition only supported for equal size matrices")
         else:
             out = defaultdict(lambda: 0)
@@ -42,7 +41,7 @@ class PsdHermitian(MutableMapping):
     def __sub__(self, other):
         if not isinstance(other, PsdHermitian):
             return NotImplemented
-        elif self._size!=other._size:
+        elif self.size!=other.size:
             raise ValueError("Subtraction only supported for equal size matrices")
         else:
             out = defaultdict(lambda: 0)
@@ -96,6 +95,8 @@ class PsdHermitian(MutableMapping):
 
     def __contains__(self, key):
         return key in self._matrix.keys()
+
+
 
     # Properties
     @property
@@ -153,6 +154,79 @@ class PsdHermitian(MutableMapping):
 
         return out_dict, list(out_dict.keys())
 
+    # Class methods
+    @classmethod
+    def from_basis(cls, dimension: int, name: str):
+        indices = [(i,j) for i in range(dimension) for j in range(dimension) if i>=j]
+
+        variables = {}
+        chart = {}
+
+        for index in indices:
+            (i,j) = index
+            if i==j:
+                var = f"{name}_({i},{j})"
+                s = np.zeros((dimension, dimension))
+                s[(i,j)] = 1
+                s[(j,i)] = 1
+                variables[var] = s + 1j * np.zeros((dimension, dimension))
+                chart[var]=False
+            else:
+                var_r = f"Re{name}_({i},{j})"
+                var_i = f"Im{name}_{i},{j}"
+
+                s = np.zeros((dimension, dimension))
+                a = np.zeros((dimension, dimension))
+
+                s[(i, j)] = 1
+                s[(j, i)] = 1
+
+                a[(i,j)] = 1
+                a[(j,i)] = -1
+
+                variables[var_r] = s + 1j * np.zeros((dimension, dimension))
+                variables[var_i] = np.zeros((dimension, dimension)) + 1j * a
+
+                chart[var_r] = False
+                chart[var_i] = False
+
+            variables["constant"] = np.zeros((dimension, dimension), dtype=complex)
+            chart["constant"] = False
+
+        return cls(variables, chart, name=name)
+
+    @classmethod
+    def ones(cls,size:int,spot:int):
+        if spot == 1:
+            return PsdHermitian({"constant":np.array([[1,0],[0,0]])},
+                {"constant":False},
+                name=""
+            )
+        elif spot == 2:
+            return PsdHermitian({"constant":np.array([[0,1],[0,0]])},
+                {"constant":False},
+                name=""
+            )
+        elif spot == 3:
+            return PsdHermitian({"constant":np.array([[0,0],[1,0]])},
+                {"constant":False},
+                name=""
+            )
+        elif spot == 4:
+            return PsdHermitian({"constant":np.array([[0,0],[0,1]])},
+                {"constant":False},
+                name=""
+            )
+        else:
+            return NotImplemented
+
+    @classmethod
+    def from_constant(cls, mat, name="C"):
+        return cls(
+            {"constant": np.asarray(mat, dtype=complex)},
+            {"constant": False},
+            name=name
+        )
 
     # Methods
     def keys(self):
@@ -192,61 +266,57 @@ class PsdHermitian(MutableMapping):
     def psd(self,key):
         return self.psd_form[key]
 
-def symmetric_basis(n:int):
-    """
-    Generate a list of n x n matrices that form a basis for symmetric matrices.
-    """
-    basis = []
+    def direct_product(self, other):
+        if not isinstance(other, PsdHermitian):
+            return NotImplemented
 
-    # Diagonal elements
-    for i in range(n):
-        mat = np.zeros((n,n))
-        mat[i,i] = 1
-        basis.append(mat)
+        out = {}
 
-    # Off-diagonal elements
-    for i in range(n):
-        for j in range(i+1, n):
-            mat = np.zeros((n,n))
-            mat[i,j] = 1
-            mat[j,i] = 1
-            basis.append(mat)
+        for k1, a in self._matrix.items():
+            for k2, b in other._matrix.items():
+                if k1 == "constant" and k2 == "constant":
+                    key = "constant"
+                elif k1 == "constant":
+                    key = k2
+                elif k2 == "constant":
+                    key = k1
+                else:
+                    key = f"{k1}*{k2}"
 
-    return basis
+                kron = np.kron(a, b)
 
-def antisymmetric_basis(n:int):
-    """
-    Generate a list of n x n matrices that form a basis for antisymmetric matrices.
-    """
-    basis = []
+                if key in out:
+                    out[key] += kron
+                else:
+                    out[key] = kron
 
-    # Diagonal elements
-    for i in range(n):
-        mat = np.zeros((n,n))
-        mat[i,i] = 0
-        basis.append(mat)
+        return PsdHermitian(
+            out,
+            {key: False for key in out},
+            name=f"{self._name} ⊗ {other._name}",
+            nblock=self._nblock * other._nblock,
+            blockstruct=[
+                a * b
+                for a in self._blockstruct
+                for b in other._blockstruct
+            ]
+        )
 
-    # Off-diagonal elements
-    for i in range(n):
-        for j in range(i+1, n):
-            mat = np.zeros((n,n))
-            mat[i,j] = 1
-            mat[j,i] = -1
-            basis.append(mat)
+class PSDConstraint:
+    def __init__(self,side_a:PsdHermitian,side_b:PsdHermitian=None):
+        self._matrix=side_a if side_b is None or side_b["constant"]==np.zeros((side_b.size,side_b.size),dtype=complex)else side_a-side_b
 
-    return basis
+class EqualityConstraint:
+    def __init__(self,side_a,side_b):
+        self._psd_constraints = [PSDConstraint(side_a-side_b),PSDConstraint(-side_a+side_b)]
 
-def generate_hermitian(dimension: int,name: str):
-    """
-    Generates an array containing PsdHermitian objects that correspond to a hermitian matrix of size dimension with each entry a separate variable
-    :param dimension: size of the matrix
-    :param name: the name of the hermitian matrix (string)
-    :return: Array of PsdHermitian objects
-    """
-    sym_basis = symmetric_basis(dimension)
-    antisym_basis = antisymmetric_basis(dimension)
-    return [PsdHermitian(a,name+f"_{i}") for  i,a in enumerate(zip(sym_basis, antisym_basis))]
+class Problem:
+    def __init__(self,target:dict,constraints:list):
+        self._target = target
+        self._constraints = constraints
 
+    @staticmethod
+    #def sort_constraints(constraints):
 # I believe the class is mostly done. The only thing left to do is: Add constructors for specific class initialisations
 # (T and Z matrices) and add a method that conjoins 4 class instances into one (basically np.block but for the class.
 # Although I think block works fine for this). Next is implementing the reading into SDPA prob with a problem class.
