@@ -12,3 +12,5 @@ y = x + x
 print(y["y1"])
 z = PsdHermitian.ones(x.size,1).direct_product(x) + PsdHermitian.ones(x.size,2).direct_product(x)
 print(z["y1"])
+
+print(sum(["x","y"]))

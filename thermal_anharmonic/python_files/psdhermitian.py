@@ -1,6 +1,10 @@
-from typing import MutableMapping
+import operator
+from functools import reduce
 
 import numpy as np
+import time
+
+from typing import MutableMapping
 from scipy.linalg import block_diag
 from collections import defaultdict
 
@@ -132,7 +136,7 @@ class PsdHermitian(MutableMapping):
                 for key, mat in self._matrix.items()
             }
         else:
-            return NotImplemented
+            return {key:block_diag([np.block([[block.real,block.imag],[-block.imag,block.real]]) for block in PsdHermitian.extract_diag_blocks(value,self._blockstruct)]) for key,value in self._matrix}
     @property
     def blockstruct(self):
         return self._blockstruct
@@ -153,6 +157,15 @@ class PsdHermitian(MutableMapping):
                 out_dict[key + "_imaginary"] = -i + 1j * r
 
         return out_dict, list(out_dict.keys())
+    @staticmethod
+    def extract_diag_blocks(a, blockstruct):
+        blocks = []
+        start = 0
+        for n in blockstruct:
+            end = start + n
+            blocks.append(a[start:end, start:end])
+            start = end
+        return blocks
 
     # Class methods
     @classmethod
@@ -303,20 +316,133 @@ class PsdHermitian(MutableMapping):
         )
 
 class PSDConstraint:
-    def __init__(self,side_a:PsdHermitian,side_b:PsdHermitian=None):
-        self._matrix=side_a if side_b is None or side_b["constant"]==np.zeros((side_b.size,side_b.size),dtype=complex)else side_a-side_b
 
-class EqualityConstraint:
-    def __init__(self,side_a,side_b):
-        self._psd_constraints = [PSDConstraint(side_a-side_b),PSDConstraint(-side_a+side_b)]
+    # Dunders
+    def __init__(self, matrix: PsdHermitian):
+        self._matrix = matrix
+
+    def __add__(self,other):
+        return PSDConstraint(self.matrix.direct_sum(other.matrix))
+
+    def __str__(self):
+        return self._matrix.name+" >= 0 "
+
+    def __repr__(self):
+        return self.__str__()
+
+    # Class methods
+    @classmethod
+    def from_sides(cls, side_a: PsdHermitian, side_b: PsdHermitian = None):
+        if side_b is None:
+            return cls(side_a)
+        return cls(side_a - side_b)
+
+    # Properties
+    @property
+    def matrix(self):
+        return self._matrix
+    @property
+    def psd_form(self):
+        return self._matrix.psd_form
+    
+    def keys(self):
+        return self._matrix.keys()
+
+class EqualityConstraint(PSDConstraint):
+
+    def __init__(self,side_a:PsdHermitian,side_b:PsdHermitian=None):
+        if side_b is not None:
+            diff= side_a - side_b
+        else:
+            diff= side_a
+
+        psd_matrix = diff.direct_sum(-diff)
+        super().__init__(psd_matrix)
 
 class Problem:
-    def __init__(self,target:dict,constraints:list):
-        self._target = target
-        self._constraints = constraints
+
+    gmp_library_path = str()
+    out_file_path = str()
+    in_file_path = str()
+
+    def __init__(self,target:dict,constraints:list|np.ndarray,in_file_name:str=None,out_file_name:str=None):
+        self._constraints = reduce(operator.add, constraints)
+        self._target = Problem.extend_target(target,self._constraints)
+        self._solved = False
+        self._solved_variables = []
+        self._problem_status = ""
+        self._in_file_name = in_file_name if in_file_name is not None else "sdpa_infile_"+str(time.time())+".dat"
+        self._out_file_name = out_file_name if out_file_name is not None else "sdpa_out_file_"+str(time.time())+".dat"
+
+
+    def __str__(self):
+        return "target function: "+Problem.target_to_string(self._target)+" with constraints: "+Problem.constraints_to_string(self._constraints)
+
+    def solve(self,force_resolve:bool=False):
+        # Runs the sdp with the gmp libray
+        if not self._solved and not force_resolve:
+            return 0
+        else:
+            Problem.write_file(self._target,self._constraints,Problem.out_file_path+self._in_file_name)
+        return NotImplemented
+    
+    @staticmethod
+    def extend_target(target,full_constraints):
+        out = target.copy()
+        for key in full_constraints.keys():
+            if key not in target:
+                out[key] = 0
+        
+        return out
+    @staticmethod
+    def target_to_string(d):
+        parts = []
+        for k, v in d.items():
+            if v == 0:
+                continue
+            sign = "-" if v < 0 else "+"
+            coeff = abs(v)
+
+            if coeff == 1:
+                term = k
+            else:
+                term = f"{coeff}*{k}"
+
+            parts.append((sign, term))
+
+        if not parts:
+            return "0"
+
+        first_sign, first_term = parts[0]
+        out = (first_term if first_sign == "+" else "-" + first_term)
+
+        for sign, term in parts[1:]:
+            out += f" {sign} {term}"
+        return out
 
     @staticmethod
-    #def sort_constraints(constraints):
+    def constraints_to_string(constraints):
+        out=""
+        for item in constraints:
+            out += str(item)+", "
+        return out
+
+    @staticmethod
+    def write_file(target,constraints,out_file):
+        with open(out_file,"w") as f:
+            f.write(f"{len(target)}=mDim\n")
+            f.write
+    @classmethod
+    def set_gmp_path(cls,path:str):
+        cls.gmp_library_path = path
+
+    @classmethod
+    def set_out_file(cls,path:str):
+        cls.out_file_path = path
+
+    @classmethod
+    def set_in_file(cls, path: str):
+        cls.in_file_path = path
 # I believe the class is mostly done. The only thing left to do is: Add constructors for specific class initialisations
 # (T and Z matrices) and add a method that conjoins 4 class instances into one (basically np.block but for the class.
 # Although I think block works fine for this). Next is implementing the reading into SDPA prob with a problem class.
