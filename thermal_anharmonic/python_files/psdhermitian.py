@@ -3,6 +3,7 @@ from functools import reduce
 
 import numpy as np
 import time
+import subprocess as sp
 
 from typing import MutableMapping
 from scipy.linalg import block_diag
@@ -17,7 +18,7 @@ class PsdHermitian(MutableMapping):
         self._matrix, self._variables = PsdHermitian.real_variables(variables_dictionary, domain_chart)
         self._nblock = nblock
         self._blockstruct = [self.size] if blockstruct is None else blockstruct
-        self._mdim = len(self._variables)-1 # Number of variables is the len(variable) minus the "constant" "variable"
+        #self._mdim = len(self._variables)-1 # Number of variables is the len(variable) minus the "constant" "variable"
 
 
 
@@ -143,6 +144,9 @@ class PsdHermitian(MutableMapping):
     @property
     def nblock(self):
         return self._nblock
+    @property
+    def mdim(self):
+        return len(self._matrix)-1
 
     # Statics
     @staticmethod
@@ -330,6 +334,20 @@ class PSDConstraint:
     def __repr__(self):
         return self.__str__()
 
+    def __iter__(self):
+        return iter(self._matrix)
+
+    def __contains__(self, key):
+        return key in self._matrix.keys()
+
+    def __getitem__(self, item):
+        if isinstance(item,str):
+            return self._matrix[item]
+        elif isinstance(item,int):
+            return self._matrix[self._variables[item]]
+        else:
+            return NotImplemented
+
     # Class methods
     @classmethod
     def from_sides(cls, side_a: PsdHermitian, side_b: PsdHermitian = None):
@@ -344,7 +362,15 @@ class PSDConstraint:
     @property
     def psd_form(self):
         return self._matrix.psd_form
-    
+    @property
+    def mdim(self):
+        return self._matrix.mdim
+    @property
+    def nblock(self):
+        return self._matrix.nblock
+    @property
+    def blockstruct(self):
+        return self._matrix.blockstruct
     def keys(self):
         return self._matrix.keys()
 
@@ -365,32 +391,90 @@ class Problem:
     out_file_path = str()
     in_file_path = str()
 
-    def __init__(self,target:dict,constraints:list|np.ndarray,in_file_name:str=None,out_file_name:str=None):
-        self._constraints = reduce(operator.add, constraints)
-        self._target = Problem.extend_target(target,self._constraints)
+    def __init__(self, target: dict, constraints: list | np.ndarray,
+                 in_file_name: str = None, out_file_name: str = None):
+
+        if not isinstance(target, dict):
+            raise ProblemSetupError("target must be a dictionary")
+
+        if not constraints:
+            raise ProblemSetupError("constraints list cannot be empty")
+
+        try:
+            self._constraints = reduce(operator.add, constraints)
+        except Exception as e:
+            raise ProblemSetupError("Failed to reduce constraints") from e
+
+        if not hasattr(self._constraints, "keys"):
+            raise ProblemSetupError("Reduced constraints must behave like a mapping")
+
+        self._target = Problem.extend_target(target, self._constraints)
+
+        if not isinstance(self._target, dict):
+            raise ProblemSetupError("extend_target must return a dictionary")
+
         self._solved = False
         self._solved_variables = []
         self._problem_status = ""
-        self._in_file_name = in_file_name if in_file_name is not None else "sdpa_infile_"+str(time.time())+".dat"
-        self._out_file_name = out_file_name if out_file_name is not None else "sdpa_out_file_"+str(time.time())+".dat"
+
+        self._in_file_name = (
+            in_file_name if in_file_name is not None
+            else f"sdpa_infile_{time.time()}.dat"
+        )
+        self._out_file_name = (
+            out_file_name if out_file_name is not None
+            else f"sdpa_out_file_{time.time()}.dat"
+        )
 
 
     def __str__(self):
         return "target function: "+Problem.target_to_string(self._target)+" with constraints: "+Problem.constraints_to_string(self._constraints)
 
     def solve(self,force_resolve:bool=False):
+        if not Problem.gmp_library_path:
+            raise ProblemSetupError("GMP library path not set")
+
+        if not Problem.in_file_path:
+            raise ProblemSetupError("Input file path not set")
+
+        if not Problem.out_file_path:
+            raise ProblemSetupError("Output file path not set")
+
         # Runs the sdp with the gmp libray
-        if not self._solved and not force_resolve:
+        if self._solved and force_resolve:
+            print("problem already solved. Use force_solve=True to solve again")
             return 0
         else:
-            Problem.write_file(self._target,self._constraints,Problem.out_file_path+self._in_file_name)
-        return NotImplemented
+            try:
+                Problem.write_file(
+                    Problem.in_file_path + self._in_file_name,
+                    self._target,
+                    self._constraints
+                )
+            except Exception as e:
+                raise ProblemIOError("Failed writing SDPA input file") from e
+
+            try:
+                sp.run(
+                    ["./sdpa_gmp",
+                     Problem.in_file_path + self._in_file_name,
+                     Problem.out_file_path + self._out_file_name],
+                    cwd=Problem.gmp_library_path,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            except sp.CalledProcessError as e:
+                raise ProblemSolveError(
+                    f"SDPA failed:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}"
+                ) from e
+            return 0
     
     @staticmethod
     def extend_target(target,full_constraints):
         out = target.copy()
         for key in full_constraints.keys():
-            if key not in target:
+            if key not in target and key!="constant":
                 out[key] = 0
         
         return out
@@ -428,10 +512,65 @@ class Problem:
         return out
 
     @staticmethod
-    def write_file(target,constraints,out_file):
-        with open(out_file,"w") as f:
-            f.write(f"{len(target)}=mDim\n")
-            f.write
+    def write_file(out_file,target,constraints):
+        if not hasattr(constraints, "mdim"):
+            raise ProblemSetupError("constraints must have mdim attribute")
+
+        if len(target) != constraints.mdim:
+            print(target)
+            raise ProblemSetupError(
+                f"Target size ({len(target)}) "
+                f"!= constraint mdim ({constraints.mdim})"
+            )
+
+        if not hasattr(constraints, "blockstruct"):
+            raise ProblemSetupError("constraints missing blockstruct")
+
+        try:
+            with open(out_file, "w") as f:
+                f.write(f"{len(target)} = mDIM\n")
+                f.write(f"{constraints.nblock} = nBLOCK\n")
+                f.write(
+                    f"{[2*stru for stru in constraints.blockstruct]}"
+                    .replace("[", "{").replace("]", "}")
+                    + " = BLOCKSTRUCT\n"
+                )
+
+                f.write("{")
+                f.write(", ".join(str(target[k]) for k in target))
+                f.write("}"+f" = {[key for key in target.keys()]}\n")
+                Problem.write_matrix_dense(f,constraints["constant"],constraints.blockstruct)
+                f.write("=F_constant\n")
+                for k in target:
+                    if k not in constraints:
+                        raise ProblemSetupError(f"Constraint missing key {k}")
+
+                    Problem.write_matrix_dense(
+                        f, constraints[k], constraints.blockstruct
+                    )
+                    f.write(f"=F_{k}\n")
+        except OSError as e:
+            raise ProblemIOError("Failed writing SDPA file") from e
+
+    @staticmethod
+    def write_matrix_dense(f, m, blockstruct):
+        print("Started Printing")
+        start = 0
+        psd_m = np.block([[m.real,m.imag],[-m.imag,m.real]]).real
+        for bs in blockstruct:
+            block = psd_m[start:start + 2*bs, start:start + 2*bs] # The factor of 2 on bs is because the PSD form of a nxn hermitian matrix is 2nx2n
+            start += 2*bs
+
+            for i,row in enumerate(block):
+                if i==0:
+                    f.write("{ ")
+                f.write("{ ")
+                f.write(" ".join(f"{x}, " for x in row).replace("[","{").replace("]","}") + " ")
+                f.write(" }, ")
+                if i==len(block)-1:
+                    f.write("}")
+        print("Ended Printing")
+
     @classmethod
     def set_gmp_path(cls,path:str):
         cls.gmp_library_path = path
@@ -443,6 +582,16 @@ class Problem:
     @classmethod
     def set_in_file(cls, path: str):
         cls.in_file_path = path
-# I believe the class is mostly done. The only thing left to do is: Add constructors for specific class initialisations
-# (T and Z matrices) and add a method that conjoins 4 class instances into one (basically np.block but for the class.
-# Although I think block works fine for this). Next is implementing the reading into SDPA prob with a problem class.
+
+## Problem Handling Classes
+class ProblemError(Exception):
+    pass
+
+class ProblemIOError(ProblemError):
+    pass
+
+class ProblemSetupError(ProblemError):
+    pass
+
+class ProblemSolveError(ProblemError):
+    pass
