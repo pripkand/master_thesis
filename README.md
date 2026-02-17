@@ -14,11 +14,8 @@ Constructs and simplifies the Hankel moment matrix, solves the SDP, and exports 
 Reads exported JSON data and generates plots.
 
 ### `zero_temperature_anharmonic_oscillator.py`
-Python implementation of the T=0 anharmonic oscillator bootstrap using  
-[`sympy`](https://www.sympy.org/),  
-[`cvxpy`](https://www.cvxpy.org/), and  
-[`SDPA-Multiprecision`](https://sdpa.sourceforge.net/) through the Python wrapper  
-[`sdpa-multiprecision`](https://github.com/sdpa-python/sdpa-python).  
+Python implementation of the T=0 anharmonic oscillator bootstrap using  [`sympy`](https://www.sympy.org/), [`cvxpy`](https://www.cvxpy.org/), and  
+[`SDPA-Multiprecision`](https://sdpa.sourceforge.net/) through the Python wrapper  [`sdpa-multiprecision`](https://github.com/sdpa-python/sdpa-python).  
 
 Solves the SDP and exports results.
 
