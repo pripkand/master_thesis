@@ -15,7 +15,7 @@ Reads exported JSON data and generates plots.
 
 ### `zero_temperature_anharmonic_oscillator.py`
 Python implementation of the T=0 anharmonic oscillator bootstrap using  [`sympy`](https://www.sympy.org/), [`cvxpy`](https://www.cvxpy.org/), and  
-[`SDPA-Multiprecision`](https://sdpa.sourceforge.net/) through the Python wrapper  [`sdpa-multiprecision`](https://github.com/sdpa-python/sdpa-python). Note that to use `cvxpy` with `SDPA-Multiprecision` one would have to build the `sdpa-multiprecision` from source and link against the `SDPA-Multiprecision` libraries. The specifics are outlines [here](https://sdpa-python.github.io/docs/installation/).
+[`SDPA-Multiprecision`](https://sdpa.sourceforge.net/) through the Python wrapper  [`sdpa-multiprecision`](https://github.com/sdpa-python/sdpa-python). Note that to use `cvxpy` with `SDPA-Multiprecision` one would have to build the `sdpa-multiprecision` from source and link against the `SDPA-Multiprecision` libraries. The specifics are outlined [here](https://sdpa-python.github.io/docs/installation/).
 Solves the SDP and exports results.
 
 A sister file, `zero-temperature_harmonic_oscillator.nb`, contains the same implementation in a Mathematica notebook.
