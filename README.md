@@ -52,3 +52,11 @@ Plots harmonic thermal bootstrap results from HDF5 output.
 
 ### `plotting_anharmonic.py`
 Plots quartic thermal bootstrap results and compares with numerical thermal energy.
+
+# Extra Files
+
+### `deprecated_python_class_psd_hermitian`
+Contains `psdhermitian.py` which is a headerfile I was working on that I didn't end up using and is not fully finished. I made it for treating Hermitian SDPs symbolically in code and have the ability to directly export them in a format that the SDPA-GMP solver can read from the terminal. I include it because someone might find it useful
+
+### `wolfram_output`/`python_output`
+This folders include the json files from the `matrix_maker.nb` that contain the exported matrices and 
