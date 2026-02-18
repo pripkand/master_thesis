@@ -1,7 +1,8 @@
 # Quantum Mechanics Bootstrap and the BFSS Conjecture
 This repository contains the code for the implementation of my Master's Thesis supervised by Prof. Dr. Vasilis Niarchos.
 
-Bellow I outline which files are needed for replicating the results I got for the bootstraps I showcased in the text.
+Bellow I outline which files are needed to replicate the results I got for the bootstraps I showcased in the text.
+
 # Project Structure
 
 ## Zero Temperature
@@ -56,7 +57,11 @@ Plots quartic thermal bootstrap results and compares with numerical thermal ener
 # Extra Files
 
 ### `deprecated_python_class_psd_hermitian`
-Contains `psdhermitian.py` which is a headerfile I was working on that I didn't end up using and is not fully finished. I made it for treating Hermitian SDPs symbolically in code and have the ability to directly export them in a format that the SDPA-GMP solver can read from the terminal. I include it because someone might find it useful
+Contains `psdhermitian.py` which is a headerfile I was working on that I didn't end up using and is not fully finished. I made it for treating Hermitian SDPs symbolically in code and have the ability to directly export them in a format that the SDPA-GMP solver can read from the terminal. I include it because someone might find it useful. Instrumental to understanding how to interface with the solver directly is the [manual for the SDPA solvers]{https://usermanual.wiki/Document/sdpa711manual20080618.114778884.pdf}.
 
 ### `wolfram_output`/`python_output`
-This folders include the json files from the `matrix_maker.nb` that contain the exported matrices and 
+This folders include the json files from the `matrix_maker.nb` that contain the exported matrices and the HDF5 files that are outputed from the corresponding python bootstrap file. This, last mentioned files are the ones I used to make the plots.
+
+---
+
+If you stumbled upon this repository and need help using this code feel free to contact me either through GitHub or at pripkand@protonmail.com
