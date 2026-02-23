@@ -1,0 +1,17 @@
+The strategy in this section will be to describe the behaviour of N D0-branes as we compactify M-theory on a circle. The derivation we follow is that of \cite{Mxintro} section 3.2. Starting from the extended DBI action\footnote{There are ways of arriving to the same results without using this action at all. For more, refer to \cite{Matrix}}
+\begin{align}\label{eq:action}
+    S=-T_{D0}\int d\tau \text{ STr}(e^{-\phi}\sqrt{\text{det}Q^i_j}\sqrt{-P[g_{00}]-P[E_{0i}](Q^{-1}-\delta)^{i}\,_k E^{kj}P[E_{j0}]})\\+T_{D0}\int\text{STr}(P[e^{i\lambda^{-1}\iota_ X \iota_ X}(\sum_nA_{(n)}e^B)])\notag
+\end{align}
+Where $\phi$ is the dilaton, 
+\begin{align}
+Q^i\,_j&:=\delta^i_j+i\lambda^{-1}[X^i,X^k]E_{kj}\\
+\lambda&:=2\pi l_s^2\\
+E_{\mu\nu}&:=g_{\mu\nu}+B_{\mu\nu}
+\end{align} B is the NSNS field that couples to the RR p-forms. $P[g_{00}]=g_{00}D_\tau X^0D_\tau X^0+2g_{0i}D_\tau X^0D_\tau X^i+g_{ij}D_\tau X^jD_\tau X^i$ and $P[E_{0i}]=E_{0i}+E_{ji}D_\tau X^j$ are the pullbacks of $g_{00}$ and $E_{0i}$ to the wordline. Lastly, $i_X$ is the contraction operator with X such that $(\iota_XC_{(p)}){\mu_1...\mu_{p-1}}=X^{j}C_{j\mu_1...\mu_{p-1}}$ and STr is the supertrace. The Latin indices range from 1 to 9 and are the transverse directions of the target space.
+
+Interpretively, the first term of the action is the worldvolume of the worldline of the D0 branes: the $\sqrt{detQ^{i}_{\,j}}$ factor is the non-abelian contribution of the NSNS field to the geometry a D0-brane "sees" while the second square root is the worldvolume and the second term is the interactions between the RR p-forms with the NSNS field.
+For what follows, we are only interested in the flat, weak field limit of this action during compactification, namely:
+\begin{align}\label{eq:reduced_action}
+    S\approx-T_{D0}\int d\tau \text{STr}(\sqrt{det(\delta^i_j+i\lambda^{-1}[X^i,X_j]})\sqrt{-P[g_{00}]})+\int d\tau \text{STr}(P[A_{(1)}])
+\end{align}
+In the section that follows we will go over some arguments to find the limit of \ref{eq:reduced_action} during an infinite boost to go to the infinite momentum frame.

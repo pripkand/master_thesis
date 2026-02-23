@@ -1,0 +1,38 @@
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
+\contentsline {section}{\numberline {2}Quantum Mechanical Bootstrap}{1}{section.2}%
+\contentsline {subsection}{\numberline {2.1}The Basics of QM Bootstraps}{1}{subsection.2.1}%
+\contentsline {paragraph}{The Setup}{2}{section*.2}%
+\contentsline {subsection}{\numberline {2.2}Bootstrap Examples}{2}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Zero Temperature}{2}{subsubsection.2.2.1}%
+\contentsline {paragraph}{Harmonic Oscillator}{2}{section*.3}%
+\contentsline {paragraph}{Anharmonic Oscillator}{4}{section*.4}%
+\contentsline {subsubsection}{\numberline {2.2.2}Thermal Case}{4}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}Implementation}{9}{subsection.2.3}%
+\contentsline {section}{\numberline {3}The BFSS Model}{11}{section.3}%
+\contentsline {subsection}{\numberline {3.1}TypeIIA, M-Theory and Kaluza-Klein compactification}{11}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Non-Abelian Bosonic DO-branes}{12}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Infinite Boosts and Null Compactification}{13}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Some Known Properties of the Matrix Model}{16}{subsection.3.4}%
+\contentsline {paragraph}{Coordinate Interpretation of X}{16}{section*.5}%
+\contentsline {paragraph}{Spectrum}{16}{section*.6}%
+\contentsline {paragraph}{Supermembranes}{16}{section*.7}%
+\contentsline {section}{\numberline {4}Bootstraps of the BFSS Model}{17}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Parallels and Differences}{17}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Literature Implementations}{18}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Discussion}{18}{section.5}%
+\contentsline {paragraph}{Potential Directions}{18}{section*.8}%
+\contentsline {section}{\numberline {A}Kaluza-Klein Reduction}{19}{appendix.A}%
+\contentsline {paragraph}{Real Massless Scalar Field}{19}{section*.10}%
+\contentsline {paragraph}{Pure Gravity}{20}{section*.11}%
+\contentsline {section}{\numberline {B}The Code Implementation in Depth and GitHub}{21}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}Harmonic Oscillator at T=0}{21}{subsection.B.1}%
+\contentsline {paragraph}{zero-temperature\_harmonic\_oscillator.nb}{21}{section*.12}%
+\contentsline {paragraph}{plotting\_harmonic\_oscillator.ipynb}{22}{section*.13}%
+\contentsline {subsection}{\numberline {B.2}Anharmonic Oscillator at T=0}{22}{subsection.B.2}%
+\contentsline {paragraph}{zero\_temperature\_anharmonic\_oscillator.py}{22}{section*.14}%
+\contentsline {paragraph}{plotting\_anharmonic\_oscillator.ipynb}{22}{section*.15}%
+\contentsline {subsection}{\numberline {B.3}Thermal Cases}{22}{subsection.B.3}%
+\contentsline {paragraph}{matrix\_maker.nb}{22}{section*.16}%
+\contentsline {paragraph}{thermal\_bootstrap\_header\_file.py}{28}{section*.17}%
+\contentsline {paragraph}{thermal\_harmonic\_bootstrap.py/thermal\_anharmonic\_bootstrap.py}{31}{section*.18}%
+\contentsline {paragraph}{plotting\_harmonic.py/plotting\_anharmonic.py}{31}{section*.19}%

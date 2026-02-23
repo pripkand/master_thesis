@@ -1,0 +1,25 @@
+For the 0 temperature cases, we implemented the harmonic oscillator in Mathematica, then exported the results into JSON files and plotted the final plots there, while for the anharmonic case we implemented everything in python (although a version of the code in Mathematica is also available).
+
+For the thermal cases, we used Mathematica for simplifying and generating the moment matrices and then exported them as JSON files and continued with python for the SDP, using the CVXPY\cite{cvxpy} package with the SDPA-MULTIPRECISION solver through the \texttt{sdpa-multiprecision} wrapper \cite{doi:10.1080/1055678031000118482,doi:10.1109/CACSD.2010.5612693,Yamashita2012,Kim2011} for the Quartic Oscillator and with the CLARABEL\cite{Clarabel_2024} solver for the Harmonic.
+
+In our final implementation we could simply input the matrices, even having complex entries, into the programmes, but we stumbled upon avenues where that would not have been possible. In such cases, one can translate any Hermitian SDP into a Real Symmetric Matrix SDP as such:
+\begin{equation}
+    H=\Re{(H)}+i \Im{(H)}\succeq0,\; H\in H^{n}
+\end{equation}
+Where:
+\begin{align}
+    \Re(H)^T&=\Re(H)\\
+    \Im(H)^T&=-\Im(H)
+\end{align}
+Is equivalent to:
+\begin{equation}
+    S_H=\begin{bmatrix}
+        \Re(H) & \Im(H) \\
+        -\Im(H) & \Re(H)
+    \end{bmatrix}\succeq 0, \; S_H \in S^{2n}
+\end{equation}
+For more information on this refer to the MOSEK Modeling Cookbook\footnote{\url{https://docs.mosek.com/modeling-cookbook/sdo.html}}.
+
+This technique was used to write some ultimately unused and incomplete code that handles JSON imported matrices in a way that they can be exported into SDPA-GMP\cite{SDPA-GMP} friendly files such that the SDP can be executed through the terminal. We nevertheless included this code in our GitHub in case someone might find it useful.
+
+All code and any data generated is available in our GitHub\footnote{\url{https://github.com/pripkand/master_thesis.git}}. For an in-depth explanation of the code implementation refer to \ref{sec:appendix_code}.

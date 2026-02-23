@@ -1,0 +1,74 @@
+Central to he BFSS conjecture is the Kaluza-Klein Reduction of M theory on a circle, yielding TypeIIA, which compactifies the extra dimensions. In this section, we will illustrate the idea of Kaluza-Klein reduction by looking at 2 examples both of which are cases of compactification on a circle ($S^{1}$).
+\paragraph{Real Massless Scalar Field}
+Suppose we have d-dimensional spacetime on a Manifold: $\mathbb{R}^{d-2,1} \times S^1$. Assigning a coordinate z to the $S^1$ direction, all objects in the theory will be periodic in z. Given the d-dimensional action of a massless Klein-Gordon Field:
+\begin{multline}
+    S[\phi]=\int d^dx \frac{1}{2}\partial_M\phi(x^\mu,z)\partial^M\phi(x^\mu,z)=\int d^dx\frac{1}{2}(\partial_\mu \phi(x^\mu,z)\partial^\mu\phi(x^\mu,z)+\\\partial_z\phi(x^\mu,z)\partial^z\phi(x^\mu,z))
+\end{multline}
+Where with capital indices we are referring to d-dimensions and with lowercase to d-1-dimensions. Since $\phi$ is periodic in z we can expand it in Fourier modes as:
+\begin{equation}
+    \phi(x^\mu,z)=\int dk \:\tilde{\phi}^{(k)}(x^\mu)e^{i\omega(k)z}
+\end{equation}
+Where $\omega(k):=\frac{2\pi}{R_z}k$ and we have taken the principal branch of the complex logarithm such that $e^{i\omega(k)(z+R_z)}=e^{i\omega(k)z}$. By expanding inside the the action we have:
+\begin{multline}
+    S[\phi]=\int d^dx\int dk\int dk^{\prime}\frac{1}{2}(\partial_\mu\tilde\phi^{(k)}(x^\mu)\partial^\mu\tilde\phi^{(k^{\prime})}(x^\mu)-\\\omega(k)\omega(k^{\prime})\tilde\phi^{(k)}(x^\mu)\tilde\phi^{(k^{\prime})})e^{i(k+k^\prime)\frac{2\pi}{R_z}z}
+\end{multline}
+By integrating over z we will get a delta function of the form $\delta(k+k^\prime)$ giving:
+\begin{equation}
+    S[\phi]=\int d^{d-1}x\int dk\frac{1}{2}(\partial_\mu\tilde\phi^{(k)}(x^\mu)\partial^\mu\tilde\phi^{(-k)}(x^\mu)-\omega(k)\omega(-k)\tilde\phi^{(k)}(x^\mu)\tilde\phi^{(-k)}(x^{\mu}))
+\end{equation}
+Since $\phi:\mathbb{R}^{d-2,1}\times S^{1}\rightarrow \mathbb{R}$ we also have the reality condition:
+\begin{align}
+    &\int_{-\infty}^{\infty} dk \tilde\phi^{(k)}(x^{\mu})e^{i\frac{2\pi}{R_z}kz}=\int_{-\infty}^{\infty} dk\tilde\phi^{(k)}(x^{\mu})e^{-i\frac{2\pi}{R_z}kz}=\int_{-\infty}^{\infty} dk\tilde\phi^{(-k)}(x^{\mu})e^{i\frac{2\pi}{R_z}kz} \implies\notag\\
+    &\tilde\phi^{(k)}=\tilde{\phi}^{(-k)} 
+\end{align}
+Giving:
+\begin{equation}
+    S[\phi]=\int dk \int d^{d-1}x\frac{1}{2}(\partial_\mu\tilde{\phi}\partial^\mu\tilde{\phi}+m^2\tilde\phi\tilde\phi)
+\end{equation}
+Where $m^2:=\omega(k)^2=(\frac{2\pi}{R_z}k)^2$. The action above integrates over the parameter k meaning we are, effectively "summing" over all actions of tachyonic Klein-Gordon Fields. As we take, however the radius of the extra dimension to zero, only the term with k=0 remains finite. This consortium of modes is known as the Kaluza-Klein tower.
+
+\paragraph{Pure Gravity}
+For gravity, we won't go through the trouble of taking the Fourier transform and will instead assume we are only taking the 0 mode, meaning that nothing depends on z explicitly. We can write the line element in the following ansatz:
+\begin{equation}\label{eq:kk_anzatz}
+    d\hat s^2=g_{\mu\nu}dx^{\mu}dx^{\nu}+\phi (dz+A_\mu dx^{\mu})^2
+\end{equation}
+Hats denote D dimensional objects alongside capital indices, while unhated quantities and lower case indices denote D-1 dimensions. For this derivation, we follow closely \cite{zee}'s Chapter X Appendix: 1 and Appendix: 2. Ignoring the scalar field for now, we can define the following Veilbeins\footnote{ For a brief introduction refer to \cite{carroll} Appendix J }:
+\begin{align}
+    & \hat{e^a}=e^\alpha\\
+    & \hat{e^z}=dz+A_\mu dx^{\mu}
+\end{align}
+ We can calculate the spin connection ($\omega^{a}_{\;b}$) through Cartan's First Structural Equation:
+ \begin{align}
+     & \omega^{a}_{\;b}\wedge e^b=-de^a
+ \end{align}
+ The non-vanishing components of the spin connection are:
+ \begin{align}
+     & \hat{\omega}^{z}_{\;b}=\frac{1}{2}F_{ab}e^b \\
+     & \hat{\omega}^{a}_{\;b}=\omega^{a}_{\;b}-\frac{1}{2}F^a_{\;b}e^z
+ \end{align}
+ Now we can calculate the Riemann Tensor from the spin connection:
+ \begin{align}
+     \hat{R}^A_{\;B}=d\hat{\omega}^{A}_{\;B}+\hat{\omega}^{A}_{\;C}\wedge\hat{\omega}^{C}_{\;B}
+ \end{align}
+ Note that we have suppressed the non-Veilbein indices. The Ricci components then are:
+ \begin{align}
+     & \hat{R}_{ab}=R_{ab}-\frac{1}{2}F^{c}_{\;a}F_{cb}\\
+     & \hat{R}_{zz}=\frac{1}{4}F_{ca}F^{ca}
+ \end{align}
+ With the scalar being:
+ \begin{equation}
+     \hat{R}=R-\frac{1}{4}F_{ab}F^{ab}
+ \end{equation}
+ By coordinate invariance arguments illustrated in \cite{zee} Chapter X Appendix: 2 which we will not repeat here, the scalar field appears as so:
+ \begin{equation}
+     \hat{R}=R-\frac{\phi^2}{4}F_{\mu\nu}F^{\mu\nu}-2\frac{\Box\phi}{\phi}
+ \end{equation}
+ The determinant of the D dimensional metric is as follows:
+ \begin{equation}
+     \det{\hat{g}}=\det{\phi^2}\det{(g_{\mu\nu}+A_\mu A_\nu-\phi^2\frac{A_\mu A_\nu}{\phi^2}})=\phi^2\det{g}
+ \end{equation}
+ Inserting the above into the Einstein-Hilbert Action gives the Jordan Action:
+ \begin{equation}
+     S_{\text{Jordan}}\approx \int d^{D-1}x \sqrt{-g}(\phi R-\frac{1}{4}\phi^3 F_{\mu\nu}F^{\mu\nu}-2\Box\phi)
+ \end{equation}
+ Where we have ignored numerical factors.

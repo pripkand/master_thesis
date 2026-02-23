@@ -1,0 +1,167 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[style=numeric,sorting=none]{biblatex}
+\usepackage{mathrsfs}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{dsfont}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false
+}
+\usepackage{xcolor}
+\usepackage[a4paper, left=3cm, right=3cm]{geometry}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+\usepackage[utf8]{inputenc}
+\DeclareUnicodeCharacter{202F}{\,} 
+
+%\DFNalwaysdouble
+
+\numberwithin{equation}{subsection}
+
+% Directs to reference file.
+\addbibresource{references.bib}
+
+% This clears previous formatting.
+\pagestyle{fancy}
+\fancyhf{}
+
+% This adds top and bottom lines with their width.
+\renewcommand{\headrulewidth}{0.4pt} 
+\renewcommand{\footrulewidth}{0.4pt}
+
+%controls the header text
+\fancyhead[R]{\textit{Quantum Mechanics Bootstrap and the BFSS Conjecture}}
+\fancyfoot[LE]{\thepage} % Left side on Even pages
+\fancyfoot[RO]{\thepage}
+
+\title{Quantum Mechanics Bootstraps and the BFSS Conjecture}
+\author{Peter Ripoll Kandylas}
+\date{2026}
+
+\fancypagestyle{titlepage}{
+  \fancyhf{} % clear everything
+  \renewcommand{\headrulewidth}{0.4pt}
+  \renewcommand{\footrulewidth}{0.4pt}
+  
+}
+\begin{document}
+\begin{titlepage}
+\thispagestyle{titlepage}
+\centering
+
+\vspace*{2.5cm}
+{\Huge Quantum Mechanics Bootstraps and the BFSS Conjecture} \\
+\vspace*{0.5cm}
+{\Large Peter Ripoll Kandylas}\\
+\vspace*{0.5cm}
+{\Large 2026}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{uoc.png}
+\end{figure}
+\vspace{1.5cm}
+
+{\Large Physics Department\par}
+
+\vspace{1.5cm}
+
+{\Large Supervised by\par
+Prof.\ Dr.\ Vasilis Niarchos}
+
+
+\end{titlepage}
+\pagenumbering{gobble}
+
+\pagebreak
+\begin{titlepage}
+    \thispagestyle{fancy}
+    \centering
+    \vspace*{0.3\textheight}
+
+
+    \begin{minipage}{\textwidth}
+        \begin{flushright}
+            {\Large To my grandfather}
+        \end{flushright}
+    \end{minipage}
+
+    \vspace*{\fill}
+ 
+\end{titlepage}
+\pagebreak
+\begin{titlepage}
+    \thispagestyle{fancy}
+    \centering
+    \vspace*{\fill}
+
+    {\Large\bfseries Abstract\par}
+    \vspace{1cm}
+
+    \begin{minipage}{\textwidth}
+        In this thesis, motivated by the BFSS conjecture and the corresponding matrix model, we illustrate the quantum mechanics bootstrap method using semidefinite programming and apply it to the harmonic and anharmonic oscillators for zero temperature and the harmonic and quartic oscillators for non-zero temperatures. We, also, briefly showcase the BFSS conjecture and attempts of using this method for probing the physics behind it.
+    \end{minipage}
+    \vspace*{\fill}
+\end{titlepage}
+\pagebreak
+\tableofcontents
+\clearpage
+\pagebreak
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\section{Introduction}\label{sec:intro}
+    \input{introduction.tex}
+\section{Quantum Mechanical Bootstrap}\label{sec:bootstrap}
+
+    \subsection{The Basics of QM Bootstraps}
+        \input{qm_bootstrap_intro}
+        \input{qm_set_up}
+    \subsection{Bootstrap Examples}
+        \subsubsection{Zero Temperature}
+        \input{qm_harmonic_oscillator}
+        \input{qm_anharmonic_oscillator}
+        \subsubsection{Thermal Case}
+        \input{qm_thermal_anharmonic_oscillator}
+    %\subsection{The Role of Constraints}
+    % Potential setion. The idea is to compare different results with differing constraint use with the previous examples. 
+        \input{constraints}
+    \subsection{Implementation}
+    \input{implementation}
+    % Details of how each of the bootstraps was implemented. I might move this to be inside the corresponding chapters as a titled paragraph
+
+\section{The BFSS Model}\label{sec:bfss}
+    \input{BFSS_intro}
+    \subsection{TypeIIA, M-Theory and Kaluza-Klein compactification}
+    \input{sugra}
+    \subsection{Non-Abelian Bosonic DO-branes}
+    \input{non-abilean_nosonic_d0-branes}
+    \subsection{Infinite Boosts and Null Compactification}
+    \input{infinite_boosts_and_null_compactification}
+    \subsection{Some Known Properties of the Matrix Model}
+    \input{matrix_model_properties}
+
+\section{Bootstraps of the BFSS Model}\label{sec:bfss_bootstrap}
+    \input{bfss_bootstrap}
+    \subsection{Parallels and Differences}
+    \input{parallels_and_differences}
+    \subsection{Literature Implementations}
+    \input{bfss_bootstrap_implementations}
+\section{Discussion}
+    \input{discussion}
+\section*{Acknowledgements}
+\input{acknowledgements}
+\pagebreak
+\appendix
+\section{Kaluza-Klein Reduction}\label{sec:kk}
+ %I might change this section into an Appendix
+\input{kk_reduction}
+\section{The Code Implementation in Depth and GitHub}\label{sec:appendix_code}
+\input{code_implementation_in_depth_and_github}
+\printbibliography
+
+\end{document}

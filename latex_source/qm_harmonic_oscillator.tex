@@ -1,0 +1,45 @@
+\paragraph{Harmonic Oscillator}
+The simplest case we can use this tool in is the Harmonic Oscillator with Hamiltonian:
+\begin{equation}
+    \hat{H}=\frac{\hat{p}^2}{2}+\frac{\hat{x}^2}{2}
+\end{equation}
+The set of letters is $\mathcal{L}=\{\hat{x},\hat{p}\}$ with the search space being the set containing the expectation values of all words of lengths L or less. Moreover, we have the constraints:
+\begin{itemize}
+    \item $\langle\hat{\mathcal{O^\dagger}}\hat{\mathcal{O}}\rangle\geq 0\,\,\,\forall\,\,\hat{\mathcal{O}}\in\mathcal{B}_L$
+    \item $\langle[H,\hat{\mathcal{O}}]\rangle= 0\,\,\,\forall\,\,\hat{\mathcal{O}}\in\mathcal{B}_L$
+    \item $\langle\hat{\mathcal{O^\dagger}}_i[x,p]\hat{\mathcal{O}}_j\rangle=i\langle\hat{\mathcal{O^\dagger}}_i\hat{\mathcal{O}}_j\rangle\,\,\,\forall\,\,\hat{\mathcal{O}}_i,\hat{\mathcal{O}}_j\in\mathcal{B}_L$
+    \item $\langle H\hat{\mathcal{O}}\rangle=E\langle\hat{\mathcal{O}}\rangle$
+\end{itemize}
+Using the canonical relations and the Schwinger-Dyson equation while working in an energy eigenstate at zero temperature, we can reduce any expectation value of the form $\langle\hat x^m\hat p^n\rangle$ to expressions containing only moments of $\hat x$ and the energy, giving us a recursion relation between all higher moments of $\hat x$ with the Energy and some moments required to initialise the recursion. Which those moments are depends on the potential. For more on this, refer to \cite{Hulsey} section 3.1.1.  
+
+This means we are only interested in operators of the form $\hat{\mathcal{O}}=\sum_{n=0}c_n \hat{x^n}$ meaning that: \begin{equation}\langle\hat{\mathcal{O^\dagger}}\hat{\mathcal{O}}\rangle\geq0\implies\sum_{n,m}c^*_n\langle\hat{x}^{m+n}\rangle c_m=c^\dagger M c \geq 0 \iff M\succeq0\end{equation}
+Where the last implication can be taken as the definition of a positive semidefinite Hermitian matrix, i.e. a matrix whose eigenvalues are non-negative.
+Since the recursion implicates the energy in a non-linear fashion, we will have to scan over a search space of energies. For the harmonic oscillator we only need to scan over the energy. Since the eigenvalues must be positive, we are only concerned with the sign of the minimum eigenvalue of the moment matrix M and so to find a lower bound for the energy we must minimize $\text{min}\,\text{Spec}(M(E))$. In practice, we restrict ourselves to a truncated basis of operators up to length L which, after eliminating the moments of product operators, will correspond to a basis of only powers of $\hat x$. The truncation corresponds to a matrix size K. We will denote matrices in a truncated basis as $M^{(L)}$. 
+
+Now the SDP we want to carry out is: 
+\begin{align*}
+    &\text{Minimize: }\text{min}\,\text{Spec}(M^{(L)}(E))\\
+    &\text{Subject to: }M^{(L)}(E)\succeq0\\
+    &\text{With Search-space: }\mathcal{E}=\{E\}\\\\
+\end{align*}
+However, since the eigenvalues are not affine in E, and as such we can't use the energy as an SDP variable, we want to transform the problem in a way where we have easier access to the minimum eigenvalue. This can be done by relaxing the constraint $M^{(L)}\succeq0$ to $M^{(L)}-t I \succeq 0$ and adding the auxiliary variable t into our search space. Now, we only need to maximize t or, if we have to minimize the objective function as is often the case during implementation, minimize -t. This corresponds to finding a lower bound for $\text{min}(\text{Specc}(M^{(L)}(E))$. To see this, note that we can diagonalize M and the identity matrix simultaneously, effectively subtracting t from each eigenvalue.This means that:
+\[M^{(L)}(E)-tI\succeq0 \iff \text{min}\,\text{Spec}(M^{(L)}(E)-tI)\geq0\implies\text{min}\,\text{Spec}(M^{(L)}(E))\geq t\] From this we see that to check if $M^{(L)}(E)\succeq0$, and thus that the energy E is allowed, we need only check that $t_\star:= \text{max } t\geq0$. With this, we can now run the final SDP defined as:
+\begin{align*}
+    &\text{Minimize: } -t\\
+    &\text{Subject to: }M^{(L)}(E)-tI\succeq0\\
+    &\text{With Search-space: }\mathcal{E}=\{E,t\}\\
+\end{align*}
+
+Bellow, we show the allowed energies in figure \ref{fig:harmonic_allowed_indicator}, and the comparison between the minimum eigenvalues found through the SDP with those found by just checking the minimum eigenvalue for that energies in figure \ref{fig:harmonic_eigen_t_vs_mat}.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{allowed_energies_plot_ha.png}
+    \caption{Here we see the allowed energies as found through the SDP by checking that $t_\star\geq0$. We see that as K increases, the allowed regions narrow down to the allowed half integer values. The y-axis is the values of the indicator function, $\mathds{1}_{S}(E)$ where $S=\{E |\,\, t_\star(E)\geq 0\}$ is the set of allowed energies for a given depth.}
+    \label{fig:harmonic_allowed_indicator}
+\end{figure}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{t_star_vs_min_plot_ha.png}
+    \caption{We see that the minimum eigenvalue found through the SDP always outlines the eigenvalue computed numerically for a given size of matrix. With dashed red lines, we show the analytic spectrum}
+    \label{fig:harmonic_eigen_t_vs_mat}
+\end{figure}

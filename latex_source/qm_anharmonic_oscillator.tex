@@ -1,0 +1,29 @@
+\paragraph{Anharmonic Oscillator}
+The process is very similar to the harmonic oscillator, with only the initial search-space and recursive relation changing.\\
+The Hamiltonian now is 
+\begin{equation}
+    \hat{H}=\hat{p}^2+g\hat{x}^2+\hat{x}^4
+\end{equation} 
+with the search-space being 
+\begin{equation}
+    \mathcal{E}=\{E,\langle x^2\rangle\}
+\end{equation}
+The procedure continues as before:
+\begin{align*}
+    &\text{Minimize: } -t\\
+    &\text{Subject to: }M^{(L)}(E,g,\langle x^2\rangle)-tI\succeq0\\
+    &\text{With Search-space: }\mathcal{E}=\{E,t,\langle x^2\rangle\}\\
+\end{align*}
+As before, we can check which energies are allowed (see figure \ref{fig:anharmonic_allowed}). This time the search space (excluding t) is 2-dimensional, so we can also check the allowed region in this space and compare it to what we would find if we tried pairs of (E,$\langle x^2\rangle$) by hand and checked if  $\text{min}\,\text{Spec}(M^{(L)}(E,g,\langle x^2 \rangle))\geq0$ (figure \ref{fig:anharmonic_eigen_check}).
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{logt_vs_energ_anha.png}
+    \caption{Here we are plotting the energy range versus $\log|t_\star|$. Each peak corresponds to a 0 crossing meaning that two peaks mark the start and end of an allowed region. As K increases those peaks get closer and closer until they converge to the allowed energy.}
+    \label{fig:anharmonic_allowed}
+\end{figure}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=1\linewidth]{handcheck_vs_bootstrap_anha.png}
+    \caption{The lower bound for x2 computed using the bootstrap is always within the allowed region found by simply checking the space by hand for the same matrix size.}
+    \label{fig:anharmonic_eigen_check}
+\end{figure}

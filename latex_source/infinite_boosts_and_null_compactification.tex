@@ -1,0 +1,81 @@
+This section closely follows \cite{Mxintro} section 3.2.
+
+Suppose we have M-theory in a $\mathbb{R}^{1,9}\times S^1$ background compactified along the spatial dimension $z$ that corresponds to $S^1$ with radius $R_z$, meaning:\begin{equation}\label{eq:desc1_periodicity}z\sim z+2\pi R_z\end{equation}
+ The line element is:
+\begin{equation}
+    ds^2=-dt^2+dz^2+ds^2(\mathbb{R}^9)
+\end{equation}
+Where $ds^2(\mathbb{R}^9):=\sum_{i=1}^{9}dx^idx^i$ is the line element of flat Euclidean space.
+Now, suppose we boost to a frame with velocity $\beta\rightarrow1$ in the z direction. The coordinates change like:
+\begin{align}
+    \bar{z}=&\gamma(z-\beta t)\\
+    \bar{t}=&\gamma(t-\beta z)
+\end{align}
+Where $\gamma=\frac{1}{\sqrt{1-\beta^2}}$ is the Lorentz factor.
+Now, the periodicity condition \ref{eq:desc1_periodicity} becomes:
+\begin{align}
+    \bar{z}\sim\bar{z}+2\pi \gamma R_z\\
+    \bar{t}\sim\bar{t}-2\pi \gamma R_z
+\end{align}
+Since we are interested in null compactification, it is convenient to work in lightcone coordinates, defined as:
+\begin{align}\label{eq:lightcone_coords}
+    \bar{x}^\pm:=\frac{1}{\sqrt{2}}(\bar{t}\pm\bar{z})
+\end{align}
+The new line element now is:
+\begin{equation}
+    ds^2=-2d\bar{x}^+d\bar{x}^-+ds^2(\mathbb{R}^9)
+\end{equation}
+Again, due to \ref{eq:lightcone_coords} the periodicity condition becomes:
+\begin{align}\label{eq:lightcone_sim_og}
+    \bar{x}^+&\sim\bar{x}^++\frac{2\pi R_z}{\sqrt{2}}\sqrt{\frac{1-\beta}{1+\beta}}\\
+    \bar{x}^-&\sim\bar{x}^--\frac{2\pi R_z}{\sqrt{2}}\sqrt{\frac{1+\beta}{1-\beta}}
+\end{align}
+Changing now coordinates:
+\begin{align}
+    x^-&=\bar{x}^-\\
+    x^+&=\bar{x}^++\bar{x}^-\frac{1-\beta}{1+\beta}
+\end{align}
+Giving:
+\begin{align}
+    x^-&\sim x^-\frac{2\pi R_z}{\sqrt{2}}\sqrt{\frac{1+\beta}{1-\beta}}\\
+    x^+&\sim x^+
+\end{align}
+Importantly, this transformation changes the line element by adding a  $(dx^-)^2$ term:
+\begin{equation}
+    ds^2=-2dx^+dx^-+2\frac{1-\beta}{1+\beta}(dx^-)^2+ds^2(\mathbb{R}^9)
+\end{equation}
+We define now $R:=\frac{R_z}{\sqrt{2}}\sqrt{\frac{1+\beta}{1-\beta}}$ to be fixed as $\beta\rightarrow1$ meaning that this limit is equivalent to $R_z\rightarrow0$. We can rescale $x^-\mapsto x^- R$ to rewrite the line element in the more suggestive form:
+\begin{equation}
+    ds^2=2R^2\frac{1-\beta}{1+\beta}(dx^--\frac{1}{2R}\frac{1+\beta}{1-\beta}dx^+)^2-\frac{1}{2R^2}\frac{1+\beta}{1-\beta}(dx^+)^2+ds^2(\mathbb{R}^9)
+\end{equation}
+This line element is in the form of the Kaluza-Klein metric ansatz \ref{eq:kk_anzatz} with:
+\begin{align}
+    A_\mu dx^\mu &= -\frac{1}{2R}\frac{1+\beta}{1-\beta}dx^+\\
+    ds^2_{10}&=g_{\mu\nu}dx^\mu dx^\nu=-\frac{1}{2R^2}\frac{1+\beta}{1-\beta}(dx^+)^2+ds^2(\mathbb{R}^9)\\
+    \phi&=2R^2\frac{1-\beta}{1+\beta}=: R^2_-\equiv (l_sg_s)^2
+\end{align}
+We can parametrize the boost as $\beta\mapsto1-\frac{1}{\omega^2}$, giving:
+\begin{align}
+    A_{(1)}&\approx-\frac{\omega^2}{R}dx^+\\
+    ds^2_{10}&\approx-\frac{\omega^2}{R^2}(dx^+)^2+ds^2(\mathbb{R}^9)\\
+    g_s&\approx \omega^{-3/2}\hat{g}_s,\,\,\hat{g}_s:=(R/l_ p)^{3/2}\\
+    l_s&\approx \omega^{1/2}\hat{l}_s,\,\,\hat{l}_s:=l_p^{3/2}R^{-1/2}\\
+    \lambda&=2\pi l_s^2\approx\hat{\lambda}\omega,\,\,\hat{\lambda}:=2\pi \hat{l}^2_s
+\end{align}
+Where the hatted quantities are held fixed as $\omega\rightarrow\infty$. We can, now, compute the limiting behaviour of the action \ref{eq:reduced_action}:
+\begin{align*}
+    S&\approx-T_{D0}\int d\tau \text{STr}(\sqrt{det(\delta^i_j+i\lambda^{-1}[X^i,X_j]})\sqrt{-P[g_{00}]})+\int d\tau \text{STr}(P[A_{(1)}])\\
+    &\approx-T_{D0}\int d\tau \text{STr}(\sqrt{det(\delta^i_j+i\omega^{-1}\hat{\lambda}^{-1}[X^i,X_j]})\sqrt{\frac{\omega^2}{R^2}D_{\tau}X^{0}D_{\tau}X^{0}-D_{\tau}X^{j}D_{\tau}X^{j}})\\&\qquad\qquad\qquad+\int d\tau \text{STr}(A_0D_{\tau}X^{0}+A_iD_{\tau}X^i)\\
+    &\approx-\hat{T}_{D0}\,\frac{\omega^2}{R}\int d\tau \text{STr}(\sqrt{1-1/2\omega^{-2}\hat{\lambda}^{-2}\text{Tr}([X^{i},X^{j}][X_{i},X_{j}])+\mathcal{O}(\omega^{-3})}\sqrt{1-\frac{R^2}{\omega^2}D_{\tau}X^{j}D_{\tau}X^{j}})\\&\qquad\qquad\qquad+\int d\tau \text{STr}(-\frac{\omega^2}{R})
+\end{align*}
+\begin{align*}
+    &\approx-\hat{T}_{D0}\,\frac{\omega^2}{R}\int d\tau \text{STr}\left[(1+1/4\omega^{-2}\hat{\lambda}^{-2}\text{Tr}([X^{i},X^{j}][X_{i},X_{j}])+\mathcal{O}(\omega^{-4}))(1-\frac{1}{2}\frac{R^2}{\omega^2}D_{\tau}X^{j}D_{\tau}X^{j})\right]\\&\qquad\qquad\qquad-\int d\tau \text{STr}(\frac{\omega^2}{R})\\
+    &\approx \hat{T}_{D0} \int d\tau \text{Tr}(\frac{R}{2}D_\tau X^i D_\tau X^i+\frac{\hat{\lambda}^{-2}R^{-1}}{4}\text{Tr}([X^i,X^j][X_ i,X_ j])+\mathcal{O}(\omega^{-2}))
+\end{align*}
+Where in between the 2nd and 3rd line we used $det(I+A)\approx 1+TrA+\frac{1}{2}((TrA)^2-Tr(A^2))$ and we chose $X^0\text{ s.t. } D_\tau X^0 =1$ as well as pulled a factor of $\omega$ out of the tension.
+The last line is, to leading order, the bosonic part of the Matrix Theory action. We can rewrite the Lagrangian in Hamiltonian form as:
+\begin{equation}\label{eq:matrix_model_hamiltonian}
+    H=\text{Tr}(\frac{1}{2}(P^i)^2-\frac{1}{4}[X^i,X^j]^2 + \frac{1}{2}\psi_\alpha\gamma_{\alpha\beta}^i[X_i,\psi_\beta])
+\end{equation}
+We also added the 16 fermionic matrices, $\psi$, that transform under an SO(9) transformation.
+The system also includes 16 Hermitian supercharges $\mathcal{Q}_a$. The Hamiltonian is U(N) invariant.

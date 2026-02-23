@@ -1,0 +1,395 @@
+Here we will go over the code implementation in detail.
+\subsection{Harmonic Oscillator at T=0}
+The relevant files here are "zero-temperature\_harmonic\_oscillator.nb" and "plotting\_harmonic\_oscillator.ipynb". 
+\paragraph{zero-temperature\_harmonic\_oscillator.nb}
+We implement the recursion relation:
+\begin{equation}\label{eq:rec_harm}
+    n\langle x^n\rangle=2E(n-1)\langle x^{n-2} \rangle +\frac{1}{4}(n-1)(n-2)(n-3)\langle x^{n-4}\rangle
+\end{equation}
+in the function \texttt{reqRel[]} which we, then, use for simplifying the Hankel Matrix on initialisation by repeatedly substituting the solution of \ref{eq:rec_harm} with respect to the highest appearing moment in the function \texttt{buildMatrix[]}. We, then, solve the SDP using the function \texttt{doSDAtK[]} returning the optimisation variables (in this case just the slack variable t), the energy, the minimum eigenvalue computed numerically for the optimal variables and the value of the indicator function $\mathds{1}_{S}(E)$ where $S=\{E |\,\, t_\star(E)\geq 0\}$ is the set of allowed energies for a given depth which is added to the rest of the values through the call of \texttt{allowedEnergies[]} from inside \texttt{doSDAtK[]} and just checks if $t_\star$ is non-negative. Several results for different Hankel Matrix Sizes are exported to a json file.
+
+\paragraph{plotting\_harmonic\_oscillator.ipynb}
+We just read off of the json file and plot.
+
+\subsection{Anharmonic Oscillator at T=0}
+The relevant files here are "zero\_temperature\_anharmonic\_oscillator.py" and "plotting\_anharmonic\_oscillator.ipynb".
+\paragraph{zero\_temperature\_anharmonic\_oscillator.py}
+This file is basically an implementation of the same code as zero-temperature\_harmonic\_oscillator.nb but in python using sympy \cite{sympy} and cvxpy \cite{cvxpy} using the SDPA solver through the sdpa-python wrapper \cite{doi:10.1080/1055678031000118482,doi:10.1109/CACSD.2010.5612693,Yamashita2012,Kim2011}.
+\paragraph{plotting\_anharmonic\_oscillator.ipynb}
+Again, this file is only used for making the plots
+\subsection{Thermal Cases}
+Both the harmonic and anharmonic oscillator are treated using the same code with the only difference being the input files, which we export from mathematica as we will explain shortly, and the objective function.
+The relevant files are "matrix\_maker.nb", "thermal\_bootstrap\_header\_file.py", "thermal\_harmonic\_bootstrap.py",
+"thermal\_anharmonic\_bootstrap.py" and "plotting\_anharmonic.py" and 
+"plotting\_harmonic.py" for plotting.
+\paragraph{matrix\_maker.nb}
+This file basically takes care of constructing the matrices needed for \ref{eq:final_kms} except for the Z and T matrices which are computed later just before executing the SDP. It takes care of the non commuting algebraic computations to arrive to operator expressions before converting them to expectation value expressions and simplifying the moment matrices. These are then exported into json files. The indepth explanation of the file and the functions is as follows:
+\begin{enumerate}
+
+\item \textbf{\texttt{generateOperatorSet[]}}
+
+The function \texttt{generateOperatorSet[operatorLength, operators]}
+constructs all noncommutative words up to length $L$ built from
+a given operator list ($\{x,p\}$).
+
+This generates the basis $\mathcal{B}_L$ used to define moment matrices later.
+
+\item \textbf{Commutation Rules and Hermiticity}
+
+The algebra is encoded as replacement rules:
+
+\begin{align}
+p ** x &\to -i + x ** p, \\
+aj[x] &\to x, \\
+aj[p] &\to p.
+\end{align}
+This, along with NCAlgebra's \texttt{NCExpandReplaceRepeated[]}, assures that all operators are changed into a sum of operators of the form:
+$  x^np^m $
+
+\item \textbf{\texttt{NCProductList[]}}
+
+\texttt{NCProductList[expr]} processes expressions by:
+
+\begin{itemize}
+\item Expanding sums,
+\item Removing scalar prefactors,
+\item Discarding pure constants,
+\item Returning only noncommutative monomials.
+\end{itemize}
+
+Then returns a list only containing the operator monomials present in the expression given.
+
+\item \textbf{\texttt{getSymbols[]}}
+
+\texttt{getSymbols[expr]} takes the expression given (assuming it's a monomial of operators) and returns a list containing the operators present in order of appearance.
+
+\item \textbf{\texttt{compress[]}}
+
+Takes a list of words of and returns a shorthand version of the word. In practice, it lowers the power of the operators.
+\begin{equation}
+    PPP\to P3 ,\quad PXXPP \to PX2P2
+\end{equation}
+
+\item \textbf{\texttt{generateWords[]}}
+
+Called as \texttt{generateWords[char\_list,L]} returns all possible combination of words with the letters chars\_list up to and including length L after passing it through \texttt{compress[]}. It is the commuting variables equivalent of \texttt{generateOperatorSet[]}
+
+\item \textbf{\texttt{expectationValue[]}}
+
+\texttt{expectationValue[operator]} returns the expectation value of the operator given meaning operators such as
+\[
+\langle x p x \rangle \to \texttt{XPX}
+\]
+
+
+The function:
+
+\begin{itemize}
+\item Extract operator monomials using \texttt{NCProductList[]},
+\item Convert them to strings,
+\item Replace $x \to X$, $p \to P$,
+\item Interpret the result as a symbolic variable.
+\end{itemize}
+
+This converts operator equations into algebraic equations.
+
+\item \textbf{\texttt{produceSwingerDyson[]}}
+
+The function \texttt{produceSwingerDyson[operatorWordList, H]}
+implements
+\[
+\langle [H,\mathcal{O}] \rangle = 0
+\]
+for every operator $\mathcal{O}$ in the basis.
+
+For each $\mathcal{O}$ and for the given Hamiltonian H:
+\begin{enumerate}
+\item Computes $\mathcal{O} H - H \mathcal{O}$,
+\item Expands using commutation rules,
+\item Converts to expectation variables using \texttt{expectationValue[]},
+\item Sets the expression equal to zero.
+\end{enumerate}
+
+This yields linear constraints among moments which we will later solve to produce replacement rules.
+
+\item \textbf{\texttt{solveRelations[]}}
+
+The function \texttt{solveRelations[relationList]}:
+
+\begin{itemize}
+\item Iteratively solves linear equations,
+\item Eliminates higher-order (longer) words first,
+\item Identifies independent expectation variables.
+\end{itemize}
+
+The output consists of substitution rules and the remaining free variables.
+\item \textbf{\texttt{finalSearchSpace[]}}
+
+Called as \texttt{finalSearchSpace[matrix, independentVariables]}, this function is used to identify variables that didn't appear in the Schwinger-Dyson relations and stores them as independent. It is used exclusively with the Hankel Moment Matrix $M^{(L)}_{ij}:=\langle\mathcal{O}_i\mathcal{O}_j\rangle,\quad \mathcal{O}_{i,j}\in\mathcal{B}_L$.
+
+\item \textbf{Moment Matrix Constructors}
+
+Here we will list three related functions that all construct matrices of different forms.
+Given a basis $\mathcal{B}_L$, the three matrices constructed are:
+
+\begin{itemize}
+\item $A_{ij} = \langle O_i^\dagger O_j \rangle$,
+\item $B_{ij} = \langle O_i O_j^\dagger \rangle$,
+\item $C_{ij} = \langle O_i^\dagger [H,O_j] \rangle$.
+\end{itemize}
+
+And correspond to the functions:
+
+\begin{itemize}
+    \item \texttt{generateODaggerOMatrix[operatorBasis]}
+    \item \texttt{generateOODaggerMatrix[operatorBasis]} 
+    \item \texttt{generateODaggerCommutatorHOMatrix[operatorBasis]}
+\end{itemize}
+accordingly.
+These are all the moment matrices that appear in the final formulation of the bootstrap.
+\item \texttt{asignDomains[]}
+
+Called as \texttt{asignDomains[list]}, returns an association (disctionary) with keys being the variables as strings and the values being Booleans on whether the variables are complex or not. This is because, when we export to use this information with cvxpy we will need to define a variable as complex or not using a keyword argument that accepts Booleans.
+
+\item \texttt{returnCoefficients[]}
+
+Central to how the matrices are exported, the function \texttt{returnCoefficients[matrix]} returns the matrix-coefficients of the expansion:
+\begin{equation}
+    M=A_0 +\sum_i A_i\cdot x_i
+\end{equation}
+In the form of an association as:
+\begin{equation}
+    \langle| \text{"constnat"}\to \{\Re(A_0),\Im(A_0)\},\texttt{ToString[}x_i\texttt{]}\to\{\Re(A_i),\Im(A_i)\}|\rangle
+\end{equation}
+We split between imaginary and real because mathematica and python handle imaginary numbers differently.
+
+\item \textbf{Gauss--Radau Approximation of $\log(x)$}
+
+Since in the KMS condition \ref{eq:final_kms} only the abscissas and the weights appear, we need only calculate those.
+
+\begin{itemize}
+\item Abscissas are roots of
+\[
+\frac{P_{m-1}(x)+P_m(x)}{1+x},
+\]
+where $P_m$ are Legendre polynomials.
+\item Weights are
+\[
+w_j = \frac{1-x_j}{m^2 P_{m-1}(x_j)^2}.
+\]
+\item Nodes are shifted to $[0,1]$ via $x \mapsto \frac{x+1}{2}$.
+\item Weights via $w_j\mapsto\frac{w_j}{2}$ with the end point being $\frac{2}{m^2}$
+\end{itemize}
+This procedure is taken care of by \texttt{getAbscissas[m]},\texttt{getWeight[m,x]}, which implement the corresponding relations from above, and \texttt{getQuadrature[m]} which returns a list with the abscissa-weight pairs.
+
+\item \textbf{Example Use}
+\begin{lstlisting}[language=Mathematica]
+(* Anharmonic Oscillator *)
+
+L = 6;
+m = 3;
+k = 3;
+
+operatorLetters = {x, p};
+
+H := p ** p + x ** x ** x ** x;
+
+BcalLby2        = generateOperatorSet[L/2, operatorLetters];
+BcalLminus2     = generateOperatorSet[L - 2, operatorLetters];
+BcalLby2minus2  = generateOperatorSet[L/2 - 2, operatorLetters];
+
+(* Produce and Solve the Schwinger-Dyson Relations *)
+
+schwingerDysonRelations = produceSwingerDyson[BcalLminus2, H];
+
+{schwingerDysonReplacementRule, independentVariables} =
+  solveRelations[schwingerDysonRelations];
+
+(* Set up the matrices M^(L), A^(L), B^(L), C^(L) *)
+
+MofL = generateODaggerOMatrix[BcalLby2] /.
+   schwingerDysonReplacementRule;
+
+CofL = generateODaggerCommutatorHOMatrix[BcalLby2minus2, H] /.
+   schwingerDysonReplacementRule;
+
+AofL = generateODaggerOMatrix[BcalLby2minus2] /.
+   schwingerDysonReplacementRule;
+
+BofL = generateOODaggerMatrix[BcalLby2minus2] /.
+   schwingerDysonReplacementRule;
+
+(* Get the coefficients of the matrices *)
+
+dictM = returnCoefficients[MofL];
+dictA = returnCoefficients[AofL];
+dictB = returnCoefficients[BofL];
+dictC = returnCoefficients[CofL];
+
+(* Define the search space parameters and constraints *)
+
+EcalL        = finalSearchSpace[MofL, independentVariables];
+domainedEcalL = asignDomains[EcalL];
+
+(* Export parameters and matrices as a JSON file *)
+
+Export[
+ "/home/pripoll/Documents/Uni_Classes/Masters_thesis/anharmonic_thermal/" <>
+ "thermal_anharmonic/wolfram_output/anharmonic_output_for_l=" <>
+ ToString[L] <> "_m=" <> ToString[m] <> "_k=" <> ToString[k] <> ".json",
+ <|
+   "parameters" -> <|
+     "type" -> "Anharmonic",
+     "L" -> L,
+     "quadrature" -> getQuadrature[m],
+     "n" -> Length[BcalLby2minus2],
+     "k" -> k
+   |>,
+   "domains" -> domainedEcalL,
+   "M" -> dictM,
+   "A" -> dictA,
+   "C" -> dictC,
+   "B" -> dictB
+ |>
+]
+\end{lstlisting}
+\end{enumerate}
+
+\paragraph{thermal\_bootstrap\_header\_file.py}
+
+A header file for converting the exported mathematica matrices into CVXPY variables and executing the bootstrap. In detail:
+
+\begin{enumerate}
+    
+    \item \textbf{\texttt{build\_matrix()}}
+
+    This function is used for translating the matrices we got from mathematica into CVXPY variables
+    Arguments:
+    \begin{itemize}
+        \item \texttt{coefficients}: A dictionary of the form
+        \[
+        \{\texttt{"constant"}:[\Re(A_0),\Im(A_o)],\; \texttt{variable\_name}:[\Re(A_i),\Im(A_i)],\dots\}
+        \]
+        where each entry contains real and imaginary parts of a matrix.
+        \item \texttt{variables}: A dictionary mapping variable names to CVXPY variables.
+    \end{itemize}
+    The real and imaginary parts are combined into complex matrices:
+    \[
+    M_{\text{key}} = \Re + \texttt{j} \Im.
+    \]
+    The function returns the affine matrix expression
+    \[
+    M = M_{\text{constant}} + \sum_{\text{key}} M_{\text{key}} \cdot x_{\text{key}},
+    \]
+    where the sum runs over keys common to both the coefficient dictionary and the variable dictionary.
+    The result is a CVXPY-compatible matrix expression.
+
+
+\item \textbf{\texttt{run\_sdp()}}
+
+This is the main function for the bootstrap. It constructs and solves the SDP using \texttt{build\_matrix()} and stores results in HDF5 files. It automatically detects between harmonic or anharmonic systems through the mathematica outputted JSON which carry a field that specifies which system the file refers to. The chosen solver has to be hardcoded in. 
+
+Arguments:
+\begin{itemize}
+    \item \texttt{temp\_range}: Array of temperatures over which the problem is solved.
+    \item \texttt{input\_file}: JSON file containing parameters, domains, and matrix coefficient data.
+    \item \texttt{output\_folder}: Directory for the generated HDF5 file.
+    \item \texttt{verbose}: If \texttt{True}, prints solver information.
+    \item \texttt{maximize}: If \texttt{True}, maximizes the objective instead of minimizing. This is used to get upper or lower bounds
+    \item \texttt{solver\_parameters}: Optional dictionary of solver settings. These depend on which solver is used. For the final plots, this wasn't used.
+\end{itemize}
+The function builds the matrices $M$, $A$, $B$, and $C$  using \texttt{build\_matrix}. These matrices are affine in the optimization variables.
+The inverse temperature $\beta$ is used as a CVXPY parameter for faster execution through CVXPY's warm start (for more, refer to \href{https://www.cvxpy.org/tutorial/solvers/index.html?h=warm%20st}{CVXPY solver documentation}). 
+
+The auxiliary matrix variables (the Z and T matrices used in \ref{eq:final_kms} are also set up inside this function
+
+The constraints imposed finally are:
+\begin{itemize}
+    \item Positivity constraint:
+    \[
+    M^{(L)} \succeq 0.
+    \]
+    \item Initial condition:
+    \[
+    Z_0 = B.
+    \]
+    \item Block semidefinite constraints for $Z$:
+    \[
+    \begin{pmatrix}
+    Z_i & Z_{i+1} \\
+    Z_{i+1} & A
+    \end{pmatrix} \succeq 0.
+    \]
+    \item Block constraints for abscissa point $t_j$:
+    \[
+    \begin{pmatrix}
+    Z_k - A - T_j & -\sqrt{t_j} T_j \\
+    -\sqrt{t_j} T_j & A - t_j T_j
+    \end{pmatrix} \succeq 0.
+    \]
+    \item Quadrature sum constraint:
+    \[
+    \sum_j w_j T_j + 2^{-k} \beta C = 0.
+    \]
+    Where $w_j$ are the quadrature weights as mentioned above
+\end{itemize}
+
+The objective function is automatically determined from the JSON file and already implements the simplifications due to the constraints
+\begin{itemize}
+    \item For the Harmonic Oscillator:
+    \[
+    \text{objective} = P^2.
+    \]
+    \item Otherwise:
+    \[
+    \text{objective} = \frac{3}{2} P^2.
+    \]
+\end{itemize}
+The problem is either minimized or maximized depending on the \texttt{maximize} flag.
+
+The function then iterates through the temperature range such that:
+\begin{itemize}
+    \item For each temperature $T$:
+    \begin{itemize}
+        \item Update $\beta = 1/T$.
+        \item Solve the SDP using the hardcoded solver (SDPA-Multiprecision for the anharmonic and CLARABEL for the harmonic).
+        \item Record:
+        \begin{itemize}
+            \item Problem status.
+            \item Objective value (energy).
+            \item Variable values.
+            \item Solver statistics.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+The data is then exported into HDF5 files. File attributes include system type, size $L$, quadrature count $m$, relaxation order $k$, and bound type.The datasets include:
+\begin{itemize}
+    \item Energy values.
+    \item Solver status.
+    \item Temperatures.
+    \item Variable values.
+\end{itemize}
+
+The naming convention for the outfiles is:
+\[
+    \texttt{<system>\_L=<L>\_m=<m>\_k=<k>\_<upper/lower>.hdf5}.
+\]
+The suffix depends on whether the objective was maximized or minimized.
+The function returns \texttt{None}
+
+\item \texttt{anharmonic\_thermal\_energy()}
+Numerically diagonalizes the Hamiltonian of the quartic oscillator $\hat{H}=\hat{p}^2+\hat{x}^4$ and returns the thermal expectation value of $\hat{H}$ using a truncated harmonic oscillator basis.
+
+Arguments:
+\begin{itemize}
+    \item \texttt{beta}: The inverse temperature
+    \item \texttt{N}: The size of the truncated basis. Default: 140
+    \item \texttt{omega}: The frequency of the truncated basis. Default: 2.0
+\end{itemize}
+\end{enumerate}
+\paragraph{thermal\_harmonic\_bootstrap.py/thermal\_anharmonic\_bootstrap.py}
+Both this files simply call \texttt{run\_sdp()} appropriately for the corresponding Mathematica-exported JSON files for upper and lower bounds
+
+\paragraph{plotting\_harmonic.py/plotting\_anharmonic.py}
+These files simply plot from the HDF5 files gotten through \texttt{run\_sdp()}. In "plotting\_anharmonic.py" also the \texttt{anharmonic\_thermal\_energy()} function is used for the theoretical plot.

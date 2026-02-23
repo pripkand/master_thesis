@@ -1,0 +1,69 @@
+This section closely follows \cite{thermalMain}.
+Moving to the thermal case is done by introducing a new constraint, the KMS condition:
+\begin{equation}
+    \langle\mathcal{O}_1\mathcal{O}_2\rangle_{\beta}=\langle\mathcal{O}_2\:e^{-\beta H}\mathcal{O}_1\:e^{\beta H}\rangle_\beta
+\end{equation}
+where:
+\begin{equation}
+    \langle\mathcal{O}\rangle_\beta:=\text{Tr}_\mathcal{H}(\frac{e^{-\beta H }}{\text{Tr}_\mathcal{H}(e^{-\beta H})}\mathcal{O})
+\end{equation}
+In the literature (see for example \cite{KMSsource1,KMSsource3,KMSsource2}), it has been rigorously shown that the KMS condition is equivalent to:
+\begin{equation}\label{eq:KMS}
+    \beta C-A^{1/2}\log(A^{1/2}B^{-1}A^{1/2})A^{1/2}\succeq 0
+\end{equation}
+with:
+\begin{equation}
+    A_{ij}:=\langle\mathcal{O}^\dagger_i\mathcal{O}_j\rangle_\beta,\:\:\:B_{ji}:=\langle\mathcal{O}_j\mathcal{O}^\dagger_i\rangle_\beta,\:\:\:C_{i,j}:=\langle\mathcal{O}^\dagger_i[H,\mathcal{O}_j]\rangle_\beta
+\end{equation}
+However \ref{eq:KMS} is not easy to implement as is. We can get around this by relaxing the constraint in a rigorous way such that the set of allowed points we find through the SDP always include the points we would find if we were to use \ref{eq:KMS}
+As in \cite{thermalMain}, we employed a formal relaxation of the logarithm as follows:
+\begin{equation}
+    \log(x)\approx r_{k,m}(x):= 2^k r_m(x^{1/2^{k}})
+\end{equation}
+with $r_m(x)=\sum_{j=1}^{m}w_jf_{t_j}(x),\:\:f_{t}(x)=\frac{x-1}{t(x-1)+1}$. The $w_j$ are the weights of the Gauss-Radau quadrature\footnote{During implementation, we consulted this website\cite{RadauQuadrature_website}.}, and the $t_j$ are the abscissas of the quadrature with $t_1=0$. In practice, one needs to calculate the weights and abscissas only for implementing the KMS condition, as we will illustrate shortly. Using the approximated logarithm, the KMS condition is now equivalent to:
+\begin{equation}
+    \beta C-A^{1/2}r_{k,m}(A^{1/2}B^{-1}A^{1/2})A^{1/2}\succeq 0
+\end{equation}
+Which in turn is equivalent to the constraints \cite{thermalMain}:
+\begin{align}\label{eq:final_kms}
+    Z_0=B,\,\,\, \sum_{j=1}^{m}w_jT_j=\beta C,\,\,\,
+    \begin{bmatrix}
+        Z_i & Z_{i+1}\\
+        Z_{i+1} & A
+    \end{bmatrix}\succeq0\,\,\text{and}\,\,
+    \begin{bmatrix}
+        Z_k-A-T_j & -\sqrt{t_j}T_j\\
+        -\sqrt{t_j}T_j & A-t_jT_j
+    \end{bmatrix}\succeq0
+\end{align}
+With $Z_i,T_j\in H^{n}$ and the indices running from 0 to k-1 for i and from 1 to m for j meaning there are k+1 Z matrices and m T matrices.
+The canonical relations constraining the expectation values of the operator-words, as mentioned before, is equivalent to rewriting all operators such that $\hat{x}$ and it's powers always come before $\hat{p}$ and it's powers or inversely. Meaning that the entries of M are now a linear combination of expectation values of $\langle x^lp^{l^\prime}\rangle$ for some integers l and $l^\prime$.
+The final SDP problem then, for a given word length L greater than the length of operators in H, is:
+\begin{align}
+    &\text{minimize/maximize: }\,\,\langle H\rangle \\
+    &\text{Subject to: }\\
+    &\,\, M^{(L)}\succeq0\\
+    & \langle[H,\mathcal{O}]\rangle_{\beta}=0\,\,\forall\,\mathcal{O}\in\mathcal{B}_{L-2}\\
+    &\text{relation \ref{eq:final_kms} with } A=A^{(L)}_{ij}:=\langle\mathcal{O}^\dagger_i\mathcal{O}_j\rangle_\beta,\notag\\&B=B^{(L)}_{ji}:=\langle\mathcal{O}_j\mathcal{O}^\dagger_i\rangle_\beta,\:\:\:C=C^{(L)}_{i,j}:=\langle\mathcal{O}^\dagger_i[H,\mathcal{O}_j]\rangle_\beta\:\:\:\forall\:\mathcal{O}_i,\mathcal{O}_j \in \mathcal{B}_{L/2-2}
+\end{align}
+The final search-space consists of the independent $\langle\mathcal{O}\rangle_\beta$ and the T and Z matrices.
+Below, we can see the above SDP implemented for the Harmonic Oscillator (figure \ref{fig:thermal_harmonic}) and the Quartic Oscillator with Hamiltonian:
+\(
+    \hat{H}=\hat{p}^2+\hat{x}^4
+\) (figure \ref{fig:thermal_quartic})
+
+Here we would also like to mention that the thermal case can be treated using the \href{https://github.com/kerry-he/qics?tab=readme-ov-file}{Quantum Information Conic Solver (QICS)}\cite{QICS}\footnote{We thank Minjae Cho for their correspondence on this matter}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{thermal_harm.png}
+    \caption{We have plotted the SDP vs the theoretical value for the expectation value of the energy for the harmonic oscillator $\langle E\rangle=-\frac{1}{2}+\frac{e^{1/T}}{e^{1/T}-1}$ we see that even for as low as L=6 the convergence to the theoretical value is very good with more convergence as the relaxation parameters increase. The bootstrap values were computed using \texttt{CVXPY}\cite{cvxpy} with the \texttt{CLARABEL} solver \cite{Clarabel_2024}.}
+    \label{fig:thermal_harmonic}
+\end{figure}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{thermal_quart.png}
+    \caption{
+    Plot of the expectation value of the energy vs the temperature for the bootstrap at L=8,10 and relaxation variables (m,k)=(3,3). Theoretical value computed through Hamiltonian diagonalization. For the quartic we see that it takes longer to converge to the expected value, but quickly converges for L=10. The SDP was solved with \texttt{SDPA-MULTIPRECISION} using the \texttt{sdpa-python} wrapper\cite{doi:10.1080/1055678031000118482,doi:10.1109/CACSD.2010.5612693,Yamashita2012,Kim2011}. For this wrapper to use \texttt{SDPA-MULTIPRECISION} one would have to build it from source. For more on this, refer to  wrapper's documentaion}
+    %\url{https://sdpa-python.github.io/docs/installation/}
+    \label{fig:thermal_quartic}
+\end{figure}

@@ -1,0 +1,17 @@
+The Matrix Model defined by the Hamiltonian:
+\begin{equation}\label{eq:hamiltonian_first}
+    H=\text{Tr}(\frac{1}{2}(P^i)^2-\frac{1}{4}[X^i,X^j]^2 + \frac{1}{2}\psi_\alpha\gamma_{\alpha\beta}^i[X_i,\psi_\beta])
+\end{equation}
+allows for probing of M theory aspects according to the BFSS conjecture \cite{BFSS} such as graviton scattering. Recent work has been focused on examining this model, with some of it \cite{bootstrap_bfss_1,bootstrap_bfss_2,Lin_2023,adsmatrix} focusing on so-called Bootstrap methods.
+
+The Bootstrap method leverages symmetries (depending on the system we are looking at, this might be SU(N) invariance for example) and attributes of a system (like its equation of motion) to arrive to rigorous upper and lower bounds for observables. Importantly, the bootstrap method is analytical, does not rely on weak coupling expansions and can work directly in large N limits, making it rather suitable for analysing this Matrix Model. Bootstrap techniques have been applied with notable success in other cases such as CFTs (with the Conformal Bootstrap Programme) \cite{conformal_bootstrap_2,conformal_bootstrap_3}, in Matrix Quantum Mechanics \cite{Han_2020,Lin_2023} and in lattice field theory (see \cite{Anderson_2017} to name one example)
+
+In the pages that follow we will present the non-negative Bootstrap (henceforth referred to simply as Bootstrap) method using Semidefinite Programming (SDP) and briefly delve into the BFSS conjecture and aspects of the Matrix Model as well as mention literature that uses the Bootstrap to approach this model.
+
+In section \ref{sec:bootstrap} we will illustrate the method for both 0 temperature systems through the Harmonic and Anharmonic Oscillators and thermal cases following \cite{thermalMain} with the harmonic and quartic oscillators.
+
+In section \ref{sec:bfss} we illustrate a derivation of the bosonic part of \ref{eq:hamiltonian_first} through the generalised DBI action as well as some arguments pertaining to the BFSS conjecture following \cite{Mxintro}. We also list some properties of the matrix model.
+
+In section \ref{sec:bfss_bootstrap} we list some similarities for approaching this problem as a bootstrap problem with the applications we showed in \ref{sec:bootstrap} as well as list some literature that actually implements the bootstrap.
+
+In appendix \ref{sec:kk} we briefly introduce the idea of Kaluza-Klein (KK) compactification and in appendix \ref{sec:appendix_code} we explain in detail the implementation code.

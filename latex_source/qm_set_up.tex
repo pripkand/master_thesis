@@ -1,0 +1,15 @@
+\paragraph{The Setup}
+Given a Hamiltonian H which defines a Hilbert space $\mathcal{H}$ and a set of operators $\mathcal{L}$, we can define the truncated operator basis with operator "words" of lengths L as:
+\begin{align}
+    \mathcal{B}_L=\{
+    \text{all combinations}&\text{ of the operators in }
+    \mathcal{L} \\
+    &\text{ with length}\leq L
+    \}
+\end{align}
+We can use this truncated basis to set up the constraints used for any given problem. Central to all the examples we will see are the following constraints:
+\begin{align}\label{eq:main_constraints}
+    &\langle[\hat{H},\hat{\mathcal{O}}]\rangle_{\beta}=0\,\,\,\,\,\forall\,\,\hat{\mathcal{O}}\in\mathcal{B}_L \\
+    &\langle\hat{\mathcal{O}^{\dagger}_1}[\hat x,\hat p]\hat{\mathcal{O}}_2\rangle_\beta=i\langle\hat{\mathcal{O}}^{\dagger}_1\hat{\mathcal{O}_2}\rangle_\beta \,\,\,\,\,\forall\,\,\hat{\mathcal{O}}_1,\hat{\mathcal{O}}_2\in\mathcal{B}_L\label{}
+\end{align}
+Where the expectation value is taken either with a density matrix that commutes with the Hamiltonian in the case of non-zero temperature or in an Energy Eigenstate. It is worth pointing out that the canonical relations are equivalent to simply ordering all operators such that all powers of either x or p are first in all operator expressions that are written which we used during implementation.
